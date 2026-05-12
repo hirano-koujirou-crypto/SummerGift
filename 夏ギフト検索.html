@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎁 ギフト商品検索アプリ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
+    * { font-family: 'Noto Sans JP', sans-serif; }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .search-glow:focus { box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3); }
+    .tag-pill { transition: all 0.2s ease; cursor: pointer; }
+    .tag-pill:hover { transform: scale(1.05); }
+    .tag-pill.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .modal-overlay { backdrop-filter: blur(8px); }
+    .price-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .highlight { background: linear-gradient(120deg, #ffd700 0%, #ffed4e 100%); padding: 0 2px; border-radius: 3px; }
+    .search-bar-container { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); }
+    .floating-label { animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .category-chip { transition: all 0.25s ease; }
+    .category-chip:hover { transform: translateY(-2px); }
+    .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .star-rating { color: #fbbf24; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+    .modal-enter { animation: modalIn 0.3s ease; }
+    @keyframes modalIn { from{opacity:0;transform:scale(0.9) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .result-count-badge { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .no-result-icon { animation: bounce 1s ease infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
+    .sort-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div id="app">
+
+  <!-- ヘッダー -->
+  <header class="gradient-bg text-white shadow-2xl sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="floating-label text-3xl">🎁</div>
+          <div>
+            <h1 class="text-2xl font-black tracking-tight">ギフト商品カタログ</h1>
+            <p class="text-purple-200 text-xs">{{ products.length }}点の厳選ギフト商品</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button @click="toggleFavoriteView" :class="showFavoritesOnly ? 'bg-yellow-400 text-gray-800' : 'bg-white/20 text-white'" class="px-3 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 flex items-center gap-1">
+            <i class="fas fa-heart text-red-400"></i>
+            <span class="hidden sm:inline">お気に入り</span>
+            <span v-if="favoriteIds.length > 0" class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ favoriteIds.length }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 検索バー -->
+      <div class="search-bar-container rounded-2xl p-3 flex items-center gap-3">
+        <i class="fas fa-search text-white/70 text-lg ml-1"></i>
+        <input
+          v-model="searchQuery"
+          @input="onSearch"
+          type="text"
+          placeholder="商品名・特長・メーカー・キャッチコピーで検索..."
+          class="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-base font-medium search-glow"
+        />
+        <button v-if="searchQuery" @click="clearSearch" class="text-white/70 hover:text-white transition-colors">
+          <i class="fas fa-times-circle text-lg"></i>
+        </button>
+        <div class="bg-white/20 rounded-xl px-3 py-1 text-sm font-bold text-white">
+          {{ filteredProducts.length }}件
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- カテゴリフィルター -->
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fas fa-filter text-purple-600"></i>
+        <span class="font-bold text-gray-700 text-sm">カテゴリで絞り込み</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="cat in categories"
+          :key="cat.key"
+          @click="toggleCategory(cat.key)"
+          :class="selectedCategories.includes(cat.key) ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'"
+          class="category-chip px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2"
+        >
+          <span>{{ cat.icon }}</span>
+          <span>{{ cat.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 価格帯フィルター & ソート -->
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-yen-sign text-purple-600"></i>
+        <span class="font-bold text-gray-700 text-sm">価格帯</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="range in priceRanges"
+          :key="range.key"
+          @click="togglePriceRange(range.key)"
+          :class="selectedPriceRanges.includes(range.key) ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg' : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'"
+          class="tag-pill px-3 py-1.5 rounded-full text-xs font-semibold"
+        >
+          {{ range.label }}
+        </button>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="text-sm text-gray-500 font-medium">並び替え:</span>
+        <button @click="setSortBy('default')" :class="sortBy==='default'?'active':'bg-white border border-gray-200 text-gray-600'" class="sort-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">標準</button>
+        <button @click="setSortBy('price_asc')" :class="sortBy==='price_asc'?'active':'bg-white border border-gray-200 text-gray-600'" class="sort-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">価格↑</button>
+        <button @click="setSortBy('price_desc')" :class="sortBy==='price_desc'?'active':'bg-white border border-gray-200 text-gray-600'" class="sort-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">価格↓</button>
+      </div>
+    </div>
+
+    <!-- 検索結果ヘッダー -->
+    <div class="flex items-center justify-between mb-4" v-if="searchQuery || selectedCategories.length || selectedPriceRanges.length || showFavoritesOnly">
+      <div class="flex items-center gap-2">
+        <span class="result-count-badge text-white text-xs font-bold px-3 py-1 rounded-full">
+          {{ filteredProducts.length }}件ヒット
+        </span>
+        <span v-if="searchQuery" class="text-gray-500 text-sm">「<strong class="text-purple-700">{{ searchQuery }}</strong>」の検索結果</span>
+      </div>
+      <button @click="resetAll" class="text-sm text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-1 transition-colors">
+        <i class="fas fa-undo text-xs"></i> リセット
+      </button>
+    </div>
+
+    <!-- 商品グリッド -->
+    <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <div
+        v-for="product in filteredProducts"
+        :key="product.id"
+        @click="openModal(product)"
+        class="card-hover bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer relative group"
+      >
+        <!-- お気に入りボタン -->
+        <button
+          @click.stop="toggleFavorite(product.id)"
+          class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-125"
+          :class="favoriteIds.includes(product.id) ? 'bg-red-500 text-white shadow-lg' : 'bg-white/80 text-gray-400 hover:text-red-400'"
+        >
+          <i class="fas fa-heart text-sm"></i>
+        </button>
+
+        <!-- カテゴリバッジ -->
+        <div class="absolute top-3 left-3 z-10">
+          <span class="text-xs font-bold px-2 py-1 rounded-full" :class="getCategoryStyle(product.category)">
+            {{ getCategoryIcon(product.category) }} {{ product.category }}
+          </span>
+        </div>
+
+        <!-- 商品イメージエリア -->
+        <div class="h-32 flex items-center justify-center text-5xl relative overflow-hidden" :class="getCategoryBg(product.category)">
+          <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-white to-transparent"></div>
+          <span class="group-hover:scale-110 transition-transform duration-300">{{ getCategoryEmoji(product.category) }}</span>
+        </div>
+
+        <!-- 商品情報 -->
+        <div class="p-4">
+          <h3 class="font-bold text-gray-800 text-sm leading-tight mb-2 line-clamp-2" v-html="highlightText(product.name)"></h3>
+          <p class="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed" v-html="highlightText(product.catchCopy)"></p>
+
+          <!-- メーカー -->
+          <div class="flex items-center gap-1 mb-3">
+            <i class="fas fa-building text-gray-400 text-xs"></i>
+            <span class="text-xs text-gray-500" v-html="highlightText(product.maker)"></span>
+          </div>
+
+          <!-- 価格 -->
+          <div class="flex items-end justify-between">
+            <div>
+              <div class="text-xs text-gray-400">税込（送料込）</div>
+              <div class="text-lg font-black text-purple-700">¥{{ product.priceTax.toLocaleString() }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-gray-400">本体</div>
+              <div class="text-sm font-semibold text-gray-600">¥{{ product.priceBase.toLocaleString() }}</div>
+            </div>
+          </div>
+
+          <!-- 詳細ボタン -->
+          <div class="mt-3 w-full bg-gradient-to-r from-purple-50 to-indigo-50 group-hover:from-purple-600 group-hover:to-indigo-600 text-purple-600 group-hover:text-white rounded-xl py-2 text-center text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fas fa-info-circle"></i>
+            <span>詳細を見る</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 検索結果なし -->
+    <div v-else class="text-center py-20">
+      <div class="no-result-icon text-6xl mb-4">🔍</div>
+      <h3 class="text-xl font-bold text-gray-600 mb-2">商品が見つかりませんでした</h3>
+      <p class="text-gray-400 mb-6">検索条件を変えてお試しください</p>
+      <button @click="resetAll" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition-all hover:scale-105">
+        <i class="fas fa-undo mr-2"></i>条件をリセット
+      </button>
+    </div>
+
+  </main>
+
+  <!-- 商品詳細モーダル -->
+  <div v-if="selectedProduct" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay bg-black/50" @click.self="closeModal">
+    <div class="modal-enter bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+      <!-- モーダルヘッダー -->
+      <div class="sticky top-0 z-10 rounded-t-3xl overflow-hidden">
+        <div class="h-24 flex items-center justify-center text-6xl relative" :class="getCategoryBg(selectedProduct.category)">
+          <span>{{ getCategoryEmoji(selectedProduct.category) }}</span>
+          <button @click="closeModal" class="absolute top-3 right-3 bg-white/80 hover:bg-white text-gray-600 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow">
+            <i class="fas fa-times"></i>
+          </button>
+          <button @click.stop="toggleFavorite(selectedProduct.id)" class="absolute top-3 right-14 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow" :class="favoriteIds.includes(selectedProduct.id) ? 'bg-red-500 text-white' : 'bg-white/80 text-gray-400'">
+            <i class="fas fa-heart"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <!-- 商品名 & 価格 -->
+        <div class="mb-5">
+          <span class="text-xs font-bold px-2 py-1 rounded-full mb-2 inline-block" :class="getCategoryStyle(selectedProduct.category)">
+            {{ getCategoryIcon(selectedProduct.category) }} {{ selectedProduct.category }}
+          </span>
+          <h2 class="text-xl font-black text-gray-800 leading-tight mb-3">{{ selectedProduct.name }}</h2>
+          <div class="flex items-center gap-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-4">
+            <div class="flex-1">
+              <div class="text-xs text-gray-500 mb-1">税込価格（送料込）</div>
+              <div class="text-2xl font-black text-purple-700">¥{{ selectedProduct.priceTax.toLocaleString() }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-gray-500 mb-1">本体価格</div>
+              <div class="text-lg font-bold text-gray-600">¥{{ selectedProduct.priceBase.toLocaleString() }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- キャッチコピー -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-4 mb-5">
+          <div class="flex items-center gap-2 mb-1">
+            <i class="fas fa-quote-left text-yellow-400 text-sm"></i>
+            <span class="text-xs font-bold text-yellow-700">キャッチコピー</span>
+          </div>
+          <p class="text-gray-700 font-semibold text-sm leading-relaxed">{{ selectedProduct.catchCopy }}</p>
+        </div>
+
+        <!-- 商品特長 -->
+        <div class="mb-5" v-if="selectedProduct.features && selectedProduct.features.length">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-star text-purple-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">商品特長</h3>
+          </div>
+          <ul class="space-y-2">
+            <li v-for="(f, i) in selectedProduct.features" :key="i" class="flex items-start gap-2 text-sm text-gray-600">
+              <span class="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ i+1 }}</span>
+              <span>{{ f }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- おすすめ -->
+        <div class="mb-5" v-if="selectedProduct.recommend">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-user-check text-green-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">こんな方にオススメ</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-green-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.recommend }}</p>
+        </div>
+
+        <!-- 原料のこだわり -->
+        <div class="mb-5" v-if="selectedProduct.ingredient">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-seedling text-orange-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">原料のこだわり</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-orange-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.ingredient }}</p>
+        </div>
+
+        <!-- 製法のこだわり -->
+        <div class="mb-5" v-if="selectedProduct.method">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-flask text-blue-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">製法のこだわり</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-blue-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.method }}</p>
+        </div>
+
+        <!-- 商品開発背景 -->
+        <div class="mb-5" v-if="selectedProduct.story">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-pink-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-book-open text-pink-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">商品開発背景・ストーリー</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-pink-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.story }}</p>
+        </div>
+
+        <!-- 調理方法 -->
+        <div class="mb-5" v-if="selectedProduct.cooking">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-utensils text-red-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">調理方法・食べ方</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-red-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.cooking }}</p>
+        </div>
+
+        <!-- メディア情報 -->
+        <div class="mb-5" v-if="selectedProduct.media">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-tv text-indigo-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">メディア取扱い情報</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-indigo-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.media }}</p>
+        </div>
+
+        <!-- その他備考 -->
+        <div class="mb-5" v-if="selectedProduct.notes">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
+              <i class="fas fa-sticky-note text-gray-600 text-xs"></i>
+            </div>
+            <h3 class="font-bold text-gray-700">その他備考</h3>
+          </div>
+          <p class="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.notes }}</p>
+        </div>
+
+        <!-- フッター情報 -->
+        <div class="border-t border-gray-100 pt-4 flex items-center justify-between text-xs text-gray-400">
+          <div class="flex items-center gap-1">
+            <i class="fas fa-building"></i>
+            <span>{{ selectedProduct.maker }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <i class="fas fa-calendar"></i>
+            <span>{{ selectedProduct.createdAt }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- フローティング検索ヒント -->
+  <div v-if="showHint" class="fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl p-4 max-w-xs z-30 border border-purple-100">
+    <div class="flex items-start gap-3">
+      <div class="text-2xl">💡</div>
+      <div>
+        <p class="text-sm font-bold text-gray-700 mb-1">検索のヒント</p>
+        <p class="text-xs text-gray-500">「抹茶」「海鮮」「贈り物」など、キーワードで絞り込めます！</p>
+      </div>
+      <button @click="showHint=false" class="text-gray-400 hover:text-gray-600 ml-1">
+        <i class="fas fa-times text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const { createApp, ref, computed, onMounted } = Vue;
+
+createApp({
+  setup() {
+    const searchQuery = ref('');
+    const selectedCategories = ref([]);
+    const selectedPriceRanges = ref([]);
+    const selectedProduct = ref(null);
+    const sortBy = ref('default');
+    const showFavoritesOnly = ref(false);
+    const favoriteIds = ref([]);
+    const showHint = ref(true);
+
+    const products = ref([
+      {
+        id: 1,
+        name: '北海道えりも沖産　おさしみおおずわいがに　１kg',
+        catchCopy: '甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',
+        priceBase: 8800,
+        priceTax: 9504,
+        category: '海鮮',
+        maker: '㈱キョクイチ',
+        createdAt: '2025/6/20',
+        features: [
+          '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用',
+          '海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。',
+          '水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。',
+          '網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。',
+          '小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。',
+          '「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。',
+          'そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'
+        ],
+        recommend: 'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',
+        ingredient: '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',
+        method: '鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',
+        story: '3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',
+        cooking: '必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 2,
+        name: '北海道えりも沖産　おさしみおおずわいがに　500g',
+        catchCopy: '甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',
+        priceBase: 6300,
+        priceTax: 6804,
+        category: '海鮮',
+        maker: '㈱キョクイチ',
+        createdAt: '2025/6/20',
+        features: [
+          '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用',
+          '海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。',
+          '水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。',
+          '網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。',
+          '小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。',
+          '「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。',
+          'そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'
+        ],
+        recommend: 'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',
+        ingredient: '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',
+        method: '鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',
+        story: '3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',
+        cooking: '必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 3,
+        name: 'アメリカ産　紅鮭のはらす（甘塩味）',
+        catchCopy: '紅鮭の希少部位「はらす」を切り落としでお届け。',
+        priceBase: 4600,
+        priceTax: 4968,
+        category: '海鮮',
+        maker: '㈱キョクイチ',
+        createdAt: '2026/2/7',
+        features: [
+          '紅鮭の希少部位「はらす」を切り落としでお届け。',
+          '紅鮭本来の濃厚な味わいと脂の乗りが特長です。',
+          'フライパン調理が可能で簡単！',
+          '大きさ不分別、厚みの幅が不揃いな商品です。'
+        ],
+        recommend: '鮭が大好きな老若男女。日々の食卓やお弁当に。',
+        ingredient: 'アメリカ産の天然紅鮭の腹身の部分、希少部位の「はらす」を切り落としにしてお届け。',
+        method: 'ふっくらとした身と極上の脂の乗り、濃厚な味わいがお楽しみいただけます。大きさ不分別、厚みの幅が不揃いな商品です。',
+        story: 'アメリカで紅鮭の製品（フィレ）を製造する際に生じた端材です。アメリカでは食べない部位ですが、脂の乗りと旨みが詰まった大変おいしい部位のため、加塩加工し製品化しました。',
+        cooking: '冷蔵庫で解凍後、グリルやフライパンでカリッとふっくら焼き上げてください。フライパン調理が可能で簡単です。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 4,
+        name: '太か！博多辛子めんたいこ',
+        catchCopy: '腹の大きな（太か！）明太子を丁寧に漬け込みました！',
+        priceBase: 4250,
+        priceTax: 4590,
+        category: '海鮮',
+        maker: '株式会社弘商',
+        createdAt: '2026/4/20',
+        features: [
+          '粒立ちの良い大きな卵を使用',
+          'ゆず風味の秘伝のタレでじっくり168時間熟成',
+          '大きすぎて規格外になるものを切子に加工して使用することでお買い得',
+          '250g×2P入りで保存にも便利'
+        ],
+        recommend: 'とにかく明太子は粒々感にこだわりたい',
+        ingredient: 'アラスカ産の原卵を使用。通常のギフト品の約2倍のサイズ。原卵が大きいので一粒も大きく粒立ちは最高です。',
+        method: 'アラスカの海で漁獲したすけとうだらの卵を船上で腹だし・凍結し鮮度をキープ。2次調味では清酒とオリジナルで配合した唐辛子、そこに柚子を加えて168時間かけてじっくりと熟成させます。',
+        story: '原料の卸事業をやっていく中で規格が大きすぎてギフトに使用しにくいサイズのものを商品化しております。各明太子メーカーに於いて価格は据え置きで内容量を減らすことで実質値上げを行っている実態があり大きいサイズの原卵では量目合わせが難しく使用量が減っている中で有効に活用したいと思い開発に取り組みました',
+        cooking: '炊き立てあつあつの白米と一緒にお召し上がりください。パスタやお茶漬けにもよく合います。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 5,
+        name: '鹿児島県産黒毛和牛＆国産和牛ホルモン　焼肉３種食べ比べセット',
+        catchCopy: '大切な方への贈り物やご家庭でこだわりの焼肉を',
+        priceBase: 9000,
+        priceTax: 9720,
+        category: 'お肉',
+        maker: '(株)ナンチク',
+        createdAt: '2026/2/9',
+        features: [
+          '鹿児島県産黒毛和牛は肉の旨味が強いことが特長です。',
+          'ウデは前脚上部の部位です。味は濃厚ですが よく動かす部位なので、',
+          '余計な脂が少なく適度な柔らかさが特長です。',
+          '赤身肉に続きあっさりと濃厚さが程よくブレンドされています。',
+          'バラはあばら骨周辺部位を指します。濃厚な旨みと脂身の多さが特長です。',
+          'ホルモンは焼肉・BBQにピッタリです。'
+        ],
+        recommend: '大切な方への贈り物として。家族や仲間でお肉の素材の旨味を味わう',
+        ingredient: '生産者が愛情いっぱいで育てました。食した人の美味しい笑顔を楽しみに、風味と味わいを出すために特別に配合された飼料を食べて育った牛です。',
+        method: '自社工場から一貫した管理体制により高品質を維持しています。',
+        story: '鹿児島県産黒毛和牛の美味しさを皆さんに知ってもらいたいと思い、味・品質が落ちずに少しでも安価で提供できるよう包装簡略化(一般的なトレーの使用・タンボール発送）で提案させていただきました。',
+        cooking: '火を通しすぎると硬くなってしまうため、強めの火加減で片面を焼き、うっすら肉汁が出てきたら返し、返した面に少し焼き色がついたら再度返して軽く炙ったら焼き上がりです。ホルモンは中火～弱火でじっくりとまずは皮側をきつね色になったら裏返し、脂側は透明になるまで軽く炙ったら焼き上がりです。',
+        media: '',
+        notes: '※ホルモンはしっかりと火を通してからお召し上がりください。'
+      },
+      {
+        id: 6,
+        name: '王様のローストビーフ',
+        catchCopy: '希少部位「ともさんかく」を使ったローストビーフ。やわらかでうま味たっぷり。',
+        priceBase: 5500,
+        priceTax: 5940,
+        category: 'お肉',
+        maker: '米久株式会社',
+        createdAt: '2026/2/3',
+        features: [
+          'もも肉の中でもサシが入った希少部位を贅沢に使用。柔らかく、厚切りでも食べやすい。',
+          '表面を焼いた後、真空調理でじっくりと加熱し、うま味を逃さずしっとりとした食感を実現。'
+        ],
+        recommend: '特別な方への贈り物、お肉好きへ自信を持っておすすめできます。',
+        ingredient: '牛のモモ肉の中で最もサシ（脂）が入りやすく、柔らかい希少部位です。程よい赤身とコクのあるジューシーな脂が特徴でローストビーフに最適。穀物肥育（グレインフェッド）された高品質、濃厚な旨味を楽しめます。',
+        method: '肉の表面をこんがりと直火でローストし肉のうま味を閉じ込めてから米久が得意とする真空調理法でじっくりと低温で加熱、ローストビーフの最大の特長である肉のうま味とやわらかさを最大限に引き出しました。',
+        story: '王様のローストビーフの最大の特長は、原料に希少部位「ともさんかく」を使用していることです。この部位を選んだ理由は、肉質の良さとやわらかさに加え、もう一つ重要なポイントがあります。ローストビーフは製法上、味付けが肉塊の表面にしかできません。そのため、味の付いた表面と素材本来の風味を楽しめる中心部とのバランスがおいしさの決め手となります。',
+        cooking: '冷凍庫で半解凍後（目安として24時間かかります。）、袋から取り出し、お好みの厚さにスライスしてお召し上がりください。スライスする際、お手元に十分ご注意ください。',
+        media: 'デパ地下を特集した番組に何度も放送され「大丸東京店全館従業員が選んだ人気【お惣菜・弁当部門】」の1位を獲得し紹介。その後の売場でもPOPにて訴求している',
+        notes: ''
+      },
+      {
+        id: 7,
+        name: '伊藤農園　100%ピュアジュース　みかんしぼり　2ℓ',
+        catchCopy: '和歌山の伊藤農園が作ったこだわりの100%ストレートジュース',
+        priceBase: 3550,
+        priceTax: 3834,
+        category: 'ドリンク',
+        maker: '伊藤農園',
+        createdAt: '2026/1/30',
+        features: [
+          '原材料は全て和歌山県産温州みかんのみ',
+          '100%ストレートジュース',
+          '伊藤農園の果肉からのみ搾る贅沢な搾汁方法で、濃厚かつ後味すっきりの味わい'
+        ],
+        recommend: 'ストレートジュースですので、お子様やご年配のかたにも、安心してお召し上がり頂けます。',
+        ingredient: '温暖な気候で水はけの良い土地で育った100%のストレートジュース。有田は温州みかんの生産量No.1で、地域のおいしいみかんだけ使用します。',
+        method: 'みかんを搾る。ただ、それだけのシンプルな作り方ですが、手搾りのジュースと同じ味になるよう一つひとつ果実を半分に切り、上からやさしく搾りました。みかんの素材そのままの、味が濃くのどごしのスッキリしたジュースに仕上がっています。搾汁方法として一般的なインライン方式、チョッパーパルパー方式がそれぞれ搾汁率約65%～50%に対して、この搾汁方法では約30%でみかんの美味しい部分のみを楽しむ事ができます。',
+        story: '約30年前、「紀州有田のおいしいみかんを多くの方に味わってもらいたい」という思いで、農家からB級みかんを農協より高く買い取り、みかんジュース作りを始めました。みかんを食べているような美味しさを表現できるまで試行錯誤を繰り返し、今では日本のみならず世界に向けても商品を出荷しています。',
+        cooking: '冷やしてそのまま、お好みで氷を入れてお飲みください。また焼酎で割ったり、炭酸で割って飲んでもおいしいです。',
+        media: '百貨店ギフト（三越伊勢丹、大丸松坂屋、阪急など）\n高級スーパー（明治屋、クイーンズ伊勢丹、三浦屋、トップワールド、光洋など）',
+        notes: ''
+      },
+      {
+        id: 8,
+        name: 'パインアメ　ミニアイス72個',
+        catchCopy: '大人気ロングセラー商品「パインアメ」とのコラボアイス！本物の「パインアメ」を使用し、パインアメを感じるひとくちアイスに仕上げました。',
+        priceBase: 3800,
+        priceTax: 4104,
+        category: 'スイーツ',
+        maker: '(株)アイガー',
+        createdAt: '2025/2/3',
+        features: [
+          '「パインアメ」との共同開発商品です。',
+          'パインアメを細かく砕いたアイス専用「クラッシュパインアメ」を使用しています。',
+          'クラッシュパインアメ入りのチョコが、シャリっと新感覚。',
+          'パインシャーベット×パインチョコ×クラッシュパインアメ　のパインづくしのアイスです。',
+          'ぱくっと手軽に食べられるひとくちタイプのアイスです。',
+          '何個でも食べれちゃうようなすっきりした味わい。',
+          '本物のパインアメと見間違えちゃうようなかわいいパッケージ。'
+        ],
+        recommend: 'パインアメがお好きな方。フルーツアイスがお好きな方。目新しいコラボ商品がお好きな方。',
+        ingredient: '単なるパイン味のアイスではなく、本物の「パインアメ」も原料に使用。',
+        method: 'あのパインアメをアイス専用に砕き、パインチョコに混ぜ込んでアイスを包みました。',
+        story: '試作をくりかえし、甘さ・すっぱさ・香りを調整しパインアメの味わいを再現しました。またパインアメをアイスに使用できるように専用に砕いているのですが、アメを砕く工場を探すところから砕く方法まで、試行錯誤を重ね、アイスに適したクラッシュパインアメに仕上げました。',
+        cooking: 'そのままパクっとお召し上がりください。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 9,
+        name: '四万十ドラマ　抹茶の焼きモンブラン10個入',
+        catchCopy: '京都産抹茶を楽しめる焼きモンブラン',
+        priceBase: 4500,
+        priceTax: 4860,
+        category: 'スイーツ',
+        maker: '（株）ごっつお便',
+        createdAt: '2026/2/2',
+        features: [
+          '抹茶モンブランクリームはひとつひとつ手絞り。',
+          'サブレ、アーモンド、モンブラン3層に抹茶を使用。',
+          'モンブランクリームのベースは高知県産さつまいも。',
+          'アクセントとしてサブレ生地に四万十産天日塩を使用。'
+        ],
+        recommend: '抹茶好き、焼菓子好きの方に。',
+        ingredient: '京都南山城村(みなみやましろむら)の抹茶を使用しています。',
+        method: 'モンブランクリームは一つ一つ手絞りです。',
+        story: '京都で唯一の村、南山城村にある「道の駅 お茶の京都 みなみやましろ村」は、道の駅立ち上げから関わらせていただいたご縁があります。そんな交流のなかで生まれた商品です。',
+        cooking: 'そのままお召し上がりください。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 10,
+        name: '菓匠　清閑院　宇治抹茶エンガディナー茶み12個入',
+        catchCopy: '宇治抹茶を練り込んだキャラメルにくるみをぎっしりと。',
+        priceBase: 4100,
+        priceTax: 4428,
+        category: 'スイーツ',
+        maker: '（株）菓匠清閑院',
+        createdAt: '2025/7/1',
+        features: [
+          '茶みの要(かなめ)は、香り高い京都府産の熟成宇治抹茶。',
+          '色合いもあざやかな宇治抹茶を練り込んだキャラメルに、くるみをぎっしりと。',
+          'バターを使用し、さっくりほろりとした食感に仕上げた生地で挟みました。',
+          '風味香ばしく、香り豊かな焼き菓子です。'
+        ],
+        recommend: '老若男女問わず、さまざまな方におすすめです。',
+        ingredient: '',
+        method: '見た目もかわいらしく仕上げました。',
+        story: 'エンガディナーとは…スイス発祥の伝統的なお菓子。現地ではヌストルテとも呼ばれ、バタークッキー生地にくるみを詰めてみたことからこのお菓子が生まれたといわれています。',
+        cooking: '常温でお召し上がりいただけます。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 11,
+        name: 'ミッシェル・ブラン　プレミアム　レモンバウム',
+        catchCopy: '冷やしても美味しい夏のレモンバウム',
+        priceBase: 3700,
+        priceTax: 3996,
+        category: 'スイーツ',
+        maker: 'ベーグジャパン（株）',
+        createdAt: '2026/3/10',
+        features: [
+          '冷やしても美味しい新提案！',
+          'ベースはホワイトチョコをしみ込ませて、バウムに上からレモンジュレをかけました。'
+        ],
+        recommend: '夏らしいものが食べたい方！ひんやりスイーツを楽しみたい方！',
+        ingredient: '',
+        method: 'バウムの上からかけているレモンジュレはセブンイレブン特別仕様となり、通常よりも増量しております。また、バウム本体もホワイトチョコをしみ込ませることで濃厚に仕上げました。',
+        story: '夏でもさっぱり爽やかに、かつ軽すぎないスイーツの食べ応えを楽しんでいただこうと、バウムクーヘンにレモンとホワイトチョコを掛け合わせることで、絶妙なバランスに仕上げました。',
+        cooking: 'そのまま、または冷やしても美味しく召し上がれます。',
+        media: '',
+        notes: ''
+      },
+      {
+        id: 12,
+        name: 'アトリエ・ド・フロマージュ　チーズスイーツセット',
+        catchCopy: '信州のチーズ工房から自慢のチーズを使ったスイーツの詰合せ。',
+        priceBase: 3950,
+        priceTax: 4266,
+        category: 'スイーツ',
+        maker: 'アトリエ・ド・フロマージュ',
+        createdAt: '2026/3/30',
+        features: [
+          '自家製「生チーズ」を使った滑らかなチーズケーキ「フォンテンヌブロー」',
+          '厳選したチーズを使い、さっぱりレモン風味の「スティックチーズケーキ」',
+          '2種の異なるチーズスイーツの食べ比べセット'
+        ],
+        recommend: 'チーズ、チーズケーキが好きな幅広い世代の方。',
+        ingredient: '「フォンテンヌブロー」に使用している「生チーズ」は長野県産の生乳を使い、長野県東御市（とうみし）のチーズ工房で製造しています。',
+        method: '「フォンテンヌブロー」はチーズ、生クリーム、砂糖のみを使い、素材の良さをシンプルに生かした製法です。「スティックチーズケーキ」は重すぎないのに、しっかりとチーズ感を味わえる食味を目指した製法です。',
+        story: '美味しいチーズをもっと手軽にお客様に広めたいという想いから2種のチーズケーキを開発しました。「フォンテンヌブロー」は、自家製のチーズの美味しさをダイレクトに味わっていただけるように最小限の素材の構成で製造しました。「スティックチーズケーキ」は、手軽に召し上がっていただけるようスティックタイプにしましたが、しっかりと食べ応えのある商品を目指しました。',
+        cooking: '冷凍状態から冷蔵庫で5時間ほどかけてゆっくり解凍いただくのがおすすめです。',
+        media: '',
+        notes: ''
+      }
+    ]);
+
+    const categories = [
+      { key: '海鮮', label: '海鮮', icon: '🦀' },
+      { key: 'お肉', label: 'お肉', icon: '🥩' },
+      { key: 'スイーツ', label: 'スイーツ', icon: '🍰' },
+      { key: 'ドリンク', label: 'ドリンク', icon: '🍊' }
+    ];
+
+    const priceRanges = [
+      { key: 'under4000', label: '〜¥4,000', min: 0, max: 4000 },
+      { key: '4000to6000', label: '¥4,000〜¥6,000', min: 4000, max: 6000 },
+      { key: '6000to8000', label: '¥6,000〜¥8,000', min: 6000, max: 8000 },
+      { key: 'over8000', label: '¥8,000〜', min: 8000, max: Infinity }
+    ];
+
+    const getCategoryStyle = (cat) => {
+      const styles = {
+        '海鮮': 'bg-blue-100 text-blue-700',
+        'お肉': 'bg-red-100 text-red-700',
+        'スイーツ': 'bg-pink-100 text-pink-700',
+        'ドリンク': 'bg-orange-100 text-orange-700'
+      };
+      return styles[cat] || 'bg-gray-100 text-gray-700';
+    };
+
+    const getCategoryBg = (cat) => {
+      const bgs = {
+        '海鮮': 'bg-gradient-to-br from-blue-100 to-cyan-100',
+        'お肉': 'bg-gradient-to-br from-red-100 to-orange-100',
+        'スイーツ': 'bg-gradient-to-br from-pink-100 to-purple-100',
+        'ドリンク': 'bg-gradient-to-br from-orange-100 to-yellow-100'
+      };
+      return bgs[cat] || 'bg-gradient-to-br from-gray-100 to-gray-200';
+    };
+
+    const getCategoryIcon = (cat) => {
+      const icons = { '海鮮': '🦀', 'お肉': '🥩', 'スイーツ': '🍰', 'ドリンク': '🍊' };
+      return icons[cat] || '📦';
+    };
+
+    const getCategoryEmoji = (cat) => {
+      const emojis = { '海鮮': '🦞', 'お肉': '🥩', 'スイーツ': '🎂', 'ドリンク': '🍹' };
+      return emojis[cat] || '🎁';
+    };
+
+    const highlightText = (text) => {
+      if (!searchQuery.value || !text) return text;
+      const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return text.replace(new RegExp(q, 'gi'), m => `<mark class="highlight">${m}</mark>`);
+    };
+
+    const matchesSearch = (product) => {
+      if (!searchQuery.value) return true;
+      const q = searchQuery.value.toLowerCase();
+      const searchFields = [
+        product.name,
+        product.catchCopy,
+        product.maker,
+        product.category,
+        product.recommend,
+        product.ingredient,
+        product.method,
+        product.story,
+        product.cooking,
+        product.media,
+        ...(product.features || [])
+      ].filter(Boolean).join(' ').toLowerCase();
+      return searchFields.includes(q);
+    };
+
+    const matchesCategory = (product) => {
+      if (!selectedCategories.value.length) return true;
+      return selectedCategories.value.includes(product.category);
+    };
+
+    const matchesPriceRange = (product) => {
+      if (!selectedPriceRanges.value.length) return true;
+      return selectedPriceRanges.value.some(key => {
+        const range = priceRanges.find(r => r.key === key);
+        return range && product.priceTax >= range.min && product.priceTax < range.max;
+      });
+    };
+
+    const matchesFavorite = (product) => {
+      if (!showFavoritesOnly.value) return true;
+      return favoriteIds.value.includes(product.id);
+    };
+
+    const filteredProducts = computed(() => {
+      let result = products.value.filter(p =>
+        matchesSearch(p) && matchesCategory(p) && matchesPriceRange(p) && matchesFavorite(p)
+      );
+      if (sortBy.value === 'price_asc') result = [...result].sort((a, b) => a.priceTax - b.priceTax);
+      if (sortBy.value === 'price_desc') result = [...result].sort((a, b) => b.priceTax - a.priceTax);
+      return result;
+    });
+
+    const toggleCategory = (key) => {
+      const idx = selectedCategories.value.indexOf(key);
+      if (idx >= 0) selectedCategories.value.splice(idx, 1);
+      else selectedCategories.value.push(key);
+    };
+
+    const togglePriceRange = (key) => {
+      const idx = selectedPriceRanges.value.indexOf(key);
+      if (idx >= 0) selectedPriceRanges.value.splice(idx, 1);
+      else selectedPriceRanges.value.push(key);
+    };
+
+    const setSortBy = (val) => { sortBy.value = val; };
+
+    const openModal = (product) => { selectedProduct.value = product; };
+    const closeModal = () => { selectedProduct.value = null; };
+
+    const toggleFavorite = (id) => {
+      const idx = favoriteIds.value.indexOf(id);
+      if (idx >= 0) favoriteIds.value.splice(idx, 1);
+      else favoriteIds.value.push(id);
+      localStorage.setItem('giftFavorites', JSON.stringify(favoriteIds.value));
+    };
+
+    const toggleFavoriteView = () => { showFavoritesOnly.value = !showFavoritesOnly.value; };
+
+    const clearSearch = () => { searchQuery.value = ''; };
+
+    const resetAll = () => {
+      searchQuery.value = '';
+      selectedCategories.value = [];
+      selectedPriceRanges.value = [];
+      showFavoritesOnly.value = false;
+      sortBy.value = 'default';
+    };
+
+    const onSearch = () => {};
+
+    onMounted(() => {
+      const saved = localStorage.getItem('giftFavorites');
+      if (saved) favoriteIds.value = JSON.parse(saved);
+      setTimeout(() => { showHint.value = false; }, 5000);
+    });
+
+    return {
+      searchQuery, selectedCategories, selectedPriceRanges, selectedProduct,
+      sortBy, showFavoritesOnly, favoriteIds, showHint,
+      products, categories, priceRanges, filteredProducts,
+      getCategoryStyle, getCategoryBg, getCategoryIcon, getCategoryEmoji,
+      highlightText, toggleCategory, togglePriceRange, setSortBy,
+      openModal, closeModal, toggleFavorite, toggleFavoriteView,
+      clearSearch, resetAll, onSearch
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
