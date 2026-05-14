@@ -3,40 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎁 ギフト商品検索アプリ</title>
+  <title>🎁 夏ギフト商品検索アプリ</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
     * { font-family: 'Noto Sans JP', sans-serif; }
-    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-bg { background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%); }
     .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-    .search-glow:focus { box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3); }
+    .search-glow:focus { box-shadow: 0 0 0 4px rgba(14,165,233,0.3); }
     .tag-pill { transition: all 0.2s ease; cursor: pointer; }
     .tag-pill:hover { transform: scale(1.05); }
-    .tag-pill.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
     .modal-overlay { backdrop-filter: blur(8px); }
-    .price-badge { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     .highlight { background: linear-gradient(120deg, #ffd700 0%, #ffed4e 100%); padding: 0 2px; border-radius: 3px; }
     .search-bar-container { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); }
     .floating-label { animation: float 3s ease-in-out infinite; }
     @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     .category-chip { transition: all 0.25s ease; }
     .category-chip:hover { transform: translateY(-2px); }
-    .shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .star-rating { color: #fbbf24; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 10px; }
     .modal-enter { animation: modalIn 0.3s ease; }
     @keyframes modalIn { from{opacity:0;transform:scale(0.9) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
     .result-count-badge { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
     .no-result-icon { animation: bounce 1s ease infinite; }
     @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
-    .sort-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .sort-btn.active { background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; }
+
+    /* ===== ガチャ専用スタイル ===== */
+    .gacha-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #8b5cf6 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 3s ease infinite;
+      transition: all 0.3s ease;
+    }
+    .gacha-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(245,158,11,0.6), 0 0 60px rgba(139,92,246,0.4);
+    }
+    .gacha-btn:active { transform: scale(0.97); }
+    @keyframes gradientShift {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    .gacha-btn.spinning {
+      animation: gradientShift 0.3s ease infinite, btnPulse 0.3s ease infinite;
+    }
+    @keyframes btnPulse {
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.08)}
+    }
+    .gacha-modal-overlay {
+      backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.75);
+    }
+    .gacha-card-enter {
+      animation: gacha-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes gacha-reveal {
+      0%{opacity:0;transform:scale(0.3) rotate(-10deg)}
+      60%{transform:scale(1.08) rotate(2deg)}
+      100%{opacity:1;transform:scale(1) rotate(0deg)}
+    }
+    .slot-reel {
+      animation: slotSpin 0.08s linear infinite;
+    }
+    @keyframes slotSpin {
+      0%{transform:translateY(0)}
+      100%{transform:translateY(-100%)}
+    }
+    .gacha-shine {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+      animation: shine 1.5s ease-in-out infinite;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    @keyframes shine {
+      0%{transform:translateX(-100%)}
+      100%{transform:translateX(200%)}
+    }
+    .star-burst {
+      position: absolute;
+      pointer-events: none;
+      animation: starFloat 1.2s ease-out forwards;
+    }
+    @keyframes starFloat {
+      0%{opacity:1;transform:translate(0,0) scale(1)}
+      100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}
+    }
+    .rarity-legendary { background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700); }
+    .rarity-rare { background: linear-gradient(135deg, #a855f7, #6366f1, #a855f7); }
+    .rarity-common { background: linear-gradient(135deg, #0ea5e9, #06b6d4, #0ea5e9); }
+    .rarity-badge {
+      background-size: 200% 200%;
+      animation: gradientShift 2s ease infinite;
+    }
+    .gacha-result-bg {
+      background: radial-gradient(ellipse at center, rgba(255,215,0,0.15) 0%, transparent 70%);
+    }
+    .counter-badge {
+      background: linear-gradient(135deg, #1e293b, #334155);
+    }
+    .gacha-history-item {
+      animation: slideIn 0.3s ease forwards;
+    }
+    @keyframes slideIn {
+      from{opacity:0;transform:translateX(-20px)}
+      to{opacity:1;transform:translateX(0)}
+    }
+    .confetti-piece {
+      position: fixed;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+      z-index: 9999;
+    }
+    @keyframes confettiFall {
+      0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+      100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+    }
+    .gacha-slot-display {
+      font-size: 2rem;
+      animation: emojiSpin 0.1s steps(1) infinite;
+    }
+    @keyframes emojiSpin {
+      0%{content:'🎁'}25%{content:'🎰'}50%{content:'✨'}75%{content:'🎊'}
+    }
+    .pulse-ring {
+      animation: pulseRing 1.5s ease-out infinite;
+    }
+    @keyframes pulseRing {
+      0%{transform:scale(0.8);opacity:1}
+      100%{transform:scale(2);opacity:0}
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -49,57 +153,89 @@
         <div class="flex items-center gap-3">
           <div class="floating-label text-3xl">🎁</div>
           <div>
-            <h1 class="text-2xl font-black tracking-tight">ギフト商品カタログ</h1>
-            <p class="text-purple-200 text-xs">{{ products.length }}点の厳選ギフト商品</p>
+            <h1 class="text-2xl font-black tracking-tight">夏ギフト商品カタログ</h1>
+            <p class="text-blue-200 text-xs">{{ products.length }}点の厳選夏ギフト商品</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="toggleFavoriteView" :class="showFavoritesOnly ? 'bg-yellow-400 text-gray-800' : 'bg-white/20 text-white'" class="px-3 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 flex items-center gap-1">
+          <!-- ガチャボタン（ヘッダー） -->
+          <button @click="openGacha"
+            class="gacha-btn relative px-3 py-2 rounded-full text-sm font-black text-white flex items-center gap-1.5 overflow-hidden shadow-lg">
+            <div class="gacha-shine"></div>
+            <span class="text-base">🎰</span>
+            <span class="hidden sm:inline">ガチャ</span>
+            <span v-if="gachaCount > 0" class="counter-badge text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{{ gachaCount }}</span>
+          </button>
+          <button @click="toggleFavoriteView"
+            :class="showFavoritesOnly ? 'bg-yellow-400 text-gray-800' : 'bg-white/20 text-white'"
+            class="px-3 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 flex items-center gap-1">
             <i class="fas fa-heart text-red-400"></i>
             <span class="hidden sm:inline">お気に入り</span>
             <span v-if="favoriteIds.length > 0" class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ favoriteIds.length }}</span>
           </button>
         </div>
       </div>
-
-      <!-- 検索バー -->
       <div class="search-bar-container rounded-2xl p-3 flex items-center gap-3">
         <i class="fas fa-search text-white/70 text-lg ml-1"></i>
-        <input
-          v-model="searchQuery"
-          @input="onSearch"
-          type="text"
+        <input v-model="searchQuery" @input="onSearch" type="text"
           placeholder="商品名・特長・メーカー・キャッチコピーで検索..."
-          class="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-base font-medium search-glow"
-        />
+          class="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-base font-medium search-glow" />
         <button v-if="searchQuery" @click="clearSearch" class="text-white/70 hover:text-white transition-colors">
           <i class="fas fa-times-circle text-lg"></i>
         </button>
-        <div class="bg-white/20 rounded-xl px-3 py-1 text-sm font-bold text-white">
-          {{ filteredProducts.length }}件
-        </div>
+        <div class="bg-white/20 rounded-xl px-3 py-1 text-sm font-bold text-white">{{ filteredProducts.length }}件</div>
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- ===== ガチャバナー ===== -->
+    <div class="mb-6 relative overflow-hidden rounded-3xl cursor-pointer group" @click="openGacha"
+      style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #7c3aed 100%);">
+      <!-- 背景装飾 -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-4 -right-4 w-32 h-32 rounded-full opacity-20" style="background:radial-gradient(circle,#ffd700,transparent)"></div>
+        <div class="absolute -bottom-4 -left-4 w-24 h-24 rounded-full opacity-20" style="background:radial-gradient(circle,#f59e0b,transparent)"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-5" style="background:radial-gradient(circle,white,transparent)"></div>
+        <!-- 星 -->
+        <div v-for="i in 12" :key="i" class="absolute text-yellow-300 opacity-60 text-xs"
+          :style="`top:${Math.random()*100}%;left:${Math.random()*100}%;animation:float ${2+Math.random()*2}s ease-in-out infinite;animation-delay:${Math.random()*2}s`">★</div>
+      </div>
+      <div class="relative flex items-center justify-between px-6 py-5">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="pulse-ring absolute inset-0 rounded-full border-2 border-yellow-400"></div>
+            <div class="w-14 h-14 rounded-full flex items-center justify-center text-3xl"
+              style="background:linear-gradient(135deg,#ffd700,#f59e0b)">🎰</div>
+          </div>
+          <div>
+            <p class="text-yellow-300 text-xs font-bold tracking-widest mb-0.5">✨ GIFT GACHA ✨</p>
+            <h2 class="text-white text-xl font-black leading-tight">運命のギフトを引こう！</h2>
+            <p class="text-purple-200 text-xs mt-0.5">{{ products.length }}種類の中からランダムに1つをご提案</p>
+          </div>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+          <div class="gacha-btn px-5 py-3 rounded-2xl text-white font-black text-sm flex items-center gap-2 shadow-xl group-hover:scale-105 transition-transform">
+            <span>🎁</span>
+            <span>ガチャを引く</span>
+          </div>
+          <p class="text-purple-300 text-xs">タップ！</p>
+        </div>
+      </div>
+    </div>
+
     <!-- カテゴリフィルター -->
     <div class="mb-6">
       <div class="flex items-center gap-2 mb-3">
-        <i class="fas fa-filter text-purple-600"></i>
+        <i class="fas fa-filter text-blue-600"></i>
         <span class="font-bold text-gray-700 text-sm">カテゴリで絞り込み</span>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button
-          v-for="cat in categories"
-          :key="cat.key"
-          @click="toggleCategory(cat.key)"
-          :class="selectedCategories.includes(cat.key) ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'"
-          class="category-chip px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2"
-        >
-          <span>{{ cat.icon }}</span>
-          <span>{{ cat.label }}</span>
+        <button v-for="cat in categories" :key="cat.key" @click="toggleCategory(cat.key)"
+          :class="selectedCategories.includes(cat.key) ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'"
+          class="category-chip px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+          <span>{{ cat.icon }}</span><span>{{ cat.label }}</span>
         </button>
       </div>
     </div>
@@ -107,19 +243,13 @@
     <!-- 価格帯フィルター & ソート -->
     <div class="flex flex-wrap items-center gap-3 mb-6">
       <div class="flex items-center gap-2">
-        <i class="fas fa-yen-sign text-purple-600"></i>
+        <i class="fas fa-yen-sign text-blue-600"></i>
         <span class="font-bold text-gray-700 text-sm">価格帯</span>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button
-          v-for="range in priceRanges"
-          :key="range.key"
-          @click="togglePriceRange(range.key)"
+        <button v-for="range in priceRanges" :key="range.key" @click="togglePriceRange(range.key)"
           :class="selectedPriceRanges.includes(range.key) ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg' : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'"
-          class="tag-pill px-3 py-1.5 rounded-full text-xs font-semibold"
-        >
-          {{ range.label }}
-        </button>
+          class="tag-pill px-3 py-1.5 rounded-full text-xs font-semibold">{{ range.label }}</button>
       </div>
       <div class="ml-auto flex items-center gap-2">
         <span class="text-sm text-gray-500 font-medium">並び替え:</span>
@@ -132,118 +262,239 @@
     <!-- 検索結果ヘッダー -->
     <div class="flex items-center justify-between mb-4" v-if="searchQuery || selectedCategories.length || selectedPriceRanges.length || showFavoritesOnly">
       <div class="flex items-center gap-2">
-        <span class="result-count-badge text-white text-xs font-bold px-3 py-1 rounded-full">
-          {{ filteredProducts.length }}件ヒット
-        </span>
-        <span v-if="searchQuery" class="text-gray-500 text-sm">「<strong class="text-purple-700">{{ searchQuery }}</strong>」の検索結果</span>
+        <span class="result-count-badge text-white text-xs font-bold px-3 py-1 rounded-full">{{ filteredProducts.length }}件ヒット</span>
+        <span v-if="searchQuery" class="text-gray-500 text-sm">「<strong class="text-blue-700">{{ searchQuery }}</strong>」の検索結果</span>
       </div>
-      <button @click="resetAll" class="text-sm text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-1 transition-colors">
+      <button @click="resetAll" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 transition-colors">
         <i class="fas fa-undo text-xs"></i> リセット
       </button>
     </div>
 
     <!-- 商品グリッド -->
     <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      <div
-        v-for="product in filteredProducts"
-        :key="product.id"
-        @click="openModal(product)"
-        class="card-hover bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer relative group"
-      >
-        <!-- お気に入りボタン -->
-        <button
-          @click.stop="toggleFavorite(product.id)"
+      <div v-for="product in filteredProducts" :key="product.id" @click="openModal(product)"
+        class="card-hover bg-white rounded-2xl overflow-hidden shadow-md cursor-pointer relative group">
+        <button @click.stop="toggleFavorite(product.id)"
           class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-125"
-          :class="favoriteIds.includes(product.id) ? 'bg-red-500 text-white shadow-lg' : 'bg-white/80 text-gray-400 hover:text-red-400'"
-        >
+          :class="favoriteIds.includes(product.id) ? 'bg-red-500 text-white shadow-lg' : 'bg-white/80 text-gray-400 hover:text-red-400'">
           <i class="fas fa-heart text-sm"></i>
         </button>
-
-        <!-- カテゴリバッジ -->
         <div class="absolute top-3 left-3 z-10">
           <span class="text-xs font-bold px-2 py-1 rounded-full" :class="getCategoryStyle(product.category)">
             {{ getCategoryIcon(product.category) }} {{ product.category }}
           </span>
         </div>
-
-        <!-- 商品イメージエリア -->
         <div class="h-32 flex items-center justify-center text-5xl relative overflow-hidden" :class="getCategoryBg(product.category)">
           <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-white to-transparent"></div>
           <span class="group-hover:scale-110 transition-transform duration-300">{{ getCategoryEmoji(product.category) }}</span>
         </div>
-
-        <!-- 商品情報 -->
         <div class="p-4">
           <h3 class="font-bold text-gray-800 text-sm leading-tight mb-2 line-clamp-2" v-html="highlightText(product.name)"></h3>
           <p class="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed" v-html="highlightText(product.catchCopy)"></p>
-
-          <!-- メーカー -->
           <div class="flex items-center gap-1 mb-3">
             <i class="fas fa-building text-gray-400 text-xs"></i>
             <span class="text-xs text-gray-500" v-html="highlightText(product.maker)"></span>
           </div>
-
-          <!-- 価格 -->
           <div class="flex items-end justify-between">
             <div>
               <div class="text-xs text-gray-400">税込（送料込）</div>
-              <div class="text-lg font-black text-purple-700">¥{{ product.priceTax.toLocaleString() }}</div>
+              <div class="text-lg font-black text-blue-700">¥{{ product.priceTax.toLocaleString() }}</div>
             </div>
             <div class="text-right">
               <div class="text-xs text-gray-400">本体</div>
               <div class="text-sm font-semibold text-gray-600">¥{{ product.priceBase.toLocaleString() }}</div>
             </div>
           </div>
-
-          <!-- 詳細ボタン -->
-          <div class="mt-3 w-full bg-gradient-to-r from-purple-50 to-indigo-50 group-hover:from-purple-600 group-hover:to-indigo-600 text-purple-600 group-hover:text-white rounded-xl py-2 text-center text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1">
-            <i class="fas fa-info-circle"></i>
-            <span>詳細を見る</span>
+          <div class="mt-3 w-full bg-gradient-to-r from-sky-50 to-indigo-50 group-hover:from-sky-500 group-hover:to-indigo-500 text-blue-600 group-hover:text-white rounded-xl py-2 text-center text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fas fa-info-circle"></i><span>詳細を見る</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 検索結果なし -->
     <div v-else class="text-center py-20">
       <div class="no-result-icon text-6xl mb-4">🔍</div>
       <h3 class="text-xl font-bold text-gray-600 mb-2">商品が見つかりませんでした</h3>
       <p class="text-gray-400 mb-6">検索条件を変えてお試しください</p>
-      <button @click="resetAll" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition-all hover:scale-105">
+      <button @click="resetAll" class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white px-6 py-3 rounded-full font-bold hover:shadow-lg transition-all hover:scale-105">
         <i class="fas fa-undo mr-2"></i>条件をリセット
       </button>
     </div>
-
   </main>
+
+  <!-- ===== ガチャモーダル ===== -->
+  <div v-if="gachaOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 gacha-modal-overlay" @click.self="closeGacha">
+    <div class="w-full max-w-md">
+
+      <!-- スロット演出中 -->
+      <div v-if="gachaSpinning" class="text-center">
+        <div class="relative inline-block mb-6">
+          <div class="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4 relative"
+            style="background:linear-gradient(135deg,#ffd700,#f59e0b,#ef4444,#8b5cf6)">
+            <div class="absolute inset-1 rounded-full bg-gray-900 flex items-center justify-center">
+              <div class="gacha-slot-display text-5xl">{{ spinEmoji }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="text-white text-2xl font-black mb-2 animate-pulse">🎰 抽選中...</div>
+        <div class="flex justify-center gap-2 mt-4">
+          <div v-for="i in 3" :key="i" class="w-3 h-3 rounded-full bg-yellow-400 animate-bounce" :style="`animation-delay:${i*0.15}s`"></div>
+        </div>
+        <p class="text-purple-200 text-sm mt-4">運命のギフトを探しています✨</p>
+      </div>
+
+      <!-- 結果表示 -->
+      <div v-else-if="gachaResult" class="gacha-card-enter">
+        <!-- レアリティ演出 -->
+        <div class="text-center mb-4">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-sm font-black rarity-badge"
+            :class="getGachaRarity(gachaResult).class">
+            <span>{{ getGachaRarity(gachaResult).icon }}</span>
+            <span>{{ getGachaRarity(gachaResult).label }}</span>
+          </div>
+        </div>
+
+        <!-- 商品カード -->
+        <div class="bg-white rounded-3xl overflow-hidden shadow-2xl relative">
+          <!-- 輝きエフェクト -->
+          <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-3xl">
+            <div class="gacha-shine"></div>
+          </div>
+
+          <!-- カテゴリ画像エリア -->
+          <div class="h-40 flex items-center justify-center text-7xl relative overflow-hidden" :class="getCategoryBg(gachaResult.category)">
+            <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-white to-transparent"></div>
+            <span class="drop-shadow-lg">{{ getCategoryEmoji(gachaResult.category) }}</span>
+            <!-- カテゴリバッジ -->
+            <div class="absolute top-3 left-3">
+              <span class="text-xs font-bold px-2 py-1 rounded-full" :class="getCategoryStyle(gachaResult.category)">
+                {{ getCategoryIcon(gachaResult.category) }} {{ gachaResult.category }}
+              </span>
+            </div>
+            <!-- ガチャ回数バッジ -->
+            <div class="absolute top-3 right-3 counter-badge text-white text-xs font-bold px-2 py-1 rounded-full">
+              {{ gachaCount }}回目
+            </div>
+          </div>
+
+          <div class="p-5">
+            <!-- セレンディピティメッセージ -->
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-3 mb-4">
+              <p class="text-amber-700 text-xs font-bold flex items-center gap-1 mb-1">
+                <span>✨</span> 運命の出会い
+              </p>
+              <p class="text-amber-600 text-xs leading-relaxed">{{ getSerendipityMessage(gachaResult) }}</p>
+            </div>
+
+            <h2 class="font-black text-gray-800 text-lg leading-tight mb-2">{{ gachaResult.name }}</h2>
+            <p class="text-gray-500 text-sm mb-4 leading-relaxed line-clamp-2">{{ gachaResult.catchCopy }}</p>
+
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <div class="text-xs text-gray-400">税込（送料込）</div>
+                <div class="text-2xl font-black text-blue-700">¥{{ gachaResult.priceTax.toLocaleString() }}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-400">メーカー</div>
+                <div class="text-sm font-semibold text-gray-600">{{ gachaResult.maker }}</div>
+              </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="flex gap-3">
+              <button @click="viewGachaDetail"
+                class="flex-1 bg-gradient-to-r from-sky-500 to-indigo-500 text-white py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:shadow-lg transition-all hover:scale-105">
+                <i class="fas fa-info-circle"></i>
+                詳細を見る
+              </button>
+              <button @click="toggleFavorite(gachaResult.id)"
+                class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all hover:scale-110"
+                :class="favoriteIds.includes(gachaResult.id) ? 'bg-red-500 text-white shadow-lg' : 'bg-gray-100 text-gray-400 hover:text-red-400'">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- もう一度 & 閉じる -->
+        <div class="flex gap-3 mt-4">
+          <button @click="spinGacha"
+            class="gacha-btn flex-1 py-4 rounded-2xl text-white font-black text-base flex items-center justify-center gap-2 shadow-xl">
+            <span>🎰</span>
+            <span>もう一度引く！</span>
+          </button>
+          <button @click="closeGacha"
+            class="w-14 h-14 bg-white/20 rounded-2xl text-white flex items-center justify-center hover:bg-white/30 transition-all">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <!-- ガチャ履歴 -->
+        <div v-if="gachaHistory.length > 1" class="mt-4 bg-white/10 rounded-2xl p-3">
+          <p class="text-white/70 text-xs font-bold mb-2">📜 最近の出会い</p>
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <div v-for="(item, idx) in gachaHistory.slice(0,-1).slice(-5).reverse()" :key="idx"
+              class="flex-shrink-0 gacha-history-item bg-white/20 rounded-xl p-2 text-center cursor-pointer hover:bg-white/30 transition-all"
+              @click="gachaResult = item">
+              <div class="text-2xl mb-1">{{ getCategoryEmoji(item.category) }}</div>
+              <div class="text-white text-xs font-bold w-16 truncate">{{ item.name.slice(0,8) }}...</div>
+              <div class="text-white/60 text-xs">¥{{ (item.priceTax/1000).toFixed(1) }}k</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 初期状態（ガチャ前） -->
+      <div v-else class="text-center">
+        <div class="relative inline-block mb-6">
+          <div class="w-36 h-36 rounded-full flex items-center justify-center mx-auto relative"
+            style="background:linear-gradient(135deg,#ffd700,#f59e0b,#ef4444,#8b5cf6)">
+            <div class="absolute inset-2 rounded-full bg-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🎁</span>
+            </div>
+          </div>
+          <div class="pulse-ring absolute inset-0 rounded-full border-4 border-yellow-400"></div>
+        </div>
+        <h2 class="text-white text-3xl font-black mb-2">ギフトガチャ</h2>
+        <p class="text-purple-200 text-sm mb-2">{{ products.length }}種類の中から</p>
+        <p class="text-white/80 text-sm mb-8">あなたにぴったりのギフトが見つかるかも✨</p>
+        <button @click="spinGacha"
+          class="gacha-btn w-full py-5 rounded-2xl text-white font-black text-xl flex items-center justify-center gap-3 shadow-2xl">
+          <span class="text-2xl">🎰</span>
+          <span>ガチャを引く！</span>
+        </button>
+        <button @click="closeGacha" class="mt-4 text-white/50 text-sm hover:text-white/80 transition-colors">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 商品詳細モーダル -->
   <div v-if="selectedProduct" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay bg-black/50" @click.self="closeModal">
     <div class="modal-enter bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-
-      <!-- モーダルヘッダー -->
       <div class="sticky top-0 z-10 rounded-t-3xl overflow-hidden">
         <div class="h-24 flex items-center justify-center text-6xl relative" :class="getCategoryBg(selectedProduct.category)">
           <span>{{ getCategoryEmoji(selectedProduct.category) }}</span>
           <button @click="closeModal" class="absolute top-3 right-3 bg-white/80 hover:bg-white text-gray-600 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow">
             <i class="fas fa-times"></i>
           </button>
-          <button @click.stop="toggleFavorite(selectedProduct.id)" class="absolute top-3 right-14 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow" :class="favoriteIds.includes(selectedProduct.id) ? 'bg-red-500 text-white' : 'bg-white/80 text-gray-400'">
+          <button @click.stop="toggleFavorite(selectedProduct.id)" class="absolute top-3 right-14 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 shadow"
+            :class="favoriteIds.includes(selectedProduct.id) ? 'bg-red-500 text-white' : 'bg-white/80 text-gray-400'">
             <i class="fas fa-heart"></i>
           </button>
         </div>
       </div>
-
       <div class="p-6">
-        <!-- 商品名 & 価格 -->
         <div class="mb-5">
           <span class="text-xs font-bold px-2 py-1 rounded-full mb-2 inline-block" :class="getCategoryStyle(selectedProduct.category)">
             {{ getCategoryIcon(selectedProduct.category) }} {{ selectedProduct.category }}
           </span>
           <h2 class="text-xl font-black text-gray-800 leading-tight mb-3">{{ selectedProduct.name }}</h2>
-          <div class="flex items-center gap-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-4">
+          <div class="flex items-center gap-4 bg-gradient-to-r from-sky-50 to-indigo-50 rounded-2xl p-4">
             <div class="flex-1">
               <div class="text-xs text-gray-500 mb-1">税込価格（送料込）</div>
-              <div class="text-2xl font-black text-purple-700">¥{{ selectedProduct.priceTax.toLocaleString() }}</div>
+              <div class="text-2xl font-black text-blue-700">¥{{ selectedProduct.priceTax.toLocaleString() }}</div>
             </div>
             <div class="text-right">
               <div class="text-xs text-gray-500 mb-1">本体価格</div>
@@ -251,143 +502,101 @@
             </div>
           </div>
         </div>
-
-        <!-- キャッチコピー -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-4 mb-5">
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-4 mb-5" v-if="selectedProduct.catchCopy">
           <div class="flex items-center gap-2 mb-1">
             <i class="fas fa-quote-left text-yellow-400 text-sm"></i>
             <span class="text-xs font-bold text-yellow-700">キャッチコピー</span>
           </div>
           <p class="text-gray-700 font-semibold text-sm leading-relaxed">{{ selectedProduct.catchCopy }}</p>
         </div>
-
-        <!-- 商品特長 -->
         <div class="mb-5" v-if="selectedProduct.features && selectedProduct.features.length">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-star text-purple-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-star text-blue-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">商品特長</h3>
           </div>
           <ul class="space-y-2">
             <li v-for="(f, i) in selectedProduct.features" :key="i" class="flex items-start gap-2 text-sm text-gray-600">
-              <span class="w-5 h-5 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ i+1 }}</span>
+              <span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">{{ i+1 }}</span>
               <span>{{ f }}</span>
             </li>
           </ul>
         </div>
-
-        <!-- おすすめ -->
         <div class="mb-5" v-if="selectedProduct.recommend">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-user-check text-green-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-user-check text-green-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">こんな方にオススメ</h3>
           </div>
           <p class="text-sm text-gray-600 bg-green-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.recommend }}</p>
         </div>
-
-        <!-- 原料のこだわり -->
         <div class="mb-5" v-if="selectedProduct.ingredient">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-seedling text-orange-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center"><i class="fas fa-seedling text-orange-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">原料のこだわり</h3>
           </div>
           <p class="text-sm text-gray-600 bg-orange-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.ingredient }}</p>
         </div>
-
-        <!-- 製法のこだわり -->
         <div class="mb-5" v-if="selectedProduct.method">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-flask text-blue-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-flask text-blue-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">製法のこだわり</h3>
           </div>
           <p class="text-sm text-gray-600 bg-blue-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.method }}</p>
         </div>
-
-        <!-- 商品開発背景 -->
         <div class="mb-5" v-if="selectedProduct.story">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-pink-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-book-open text-pink-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-pink-100 rounded-lg flex items-center justify-center"><i class="fas fa-book-open text-pink-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">商品開発背景・ストーリー</h3>
           </div>
           <p class="text-sm text-gray-600 bg-pink-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.story }}</p>
         </div>
-
-        <!-- 調理方法 -->
         <div class="mb-5" v-if="selectedProduct.cooking">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-utensils text-red-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center"><i class="fas fa-utensils text-red-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">調理方法・食べ方</h3>
           </div>
           <p class="text-sm text-gray-600 bg-red-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.cooking }}</p>
         </div>
-
-        <!-- メディア情報 -->
         <div class="mb-5" v-if="selectedProduct.media">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-tv text-indigo-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center"><i class="fas fa-tv text-indigo-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">メディア取扱い情報</h3>
           </div>
           <p class="text-sm text-gray-600 bg-indigo-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.media }}</p>
         </div>
-
-        <!-- その他備考 -->
         <div class="mb-5" v-if="selectedProduct.notes">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-sticky-note text-gray-600 text-xs"></i>
-            </div>
+            <div class="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-sticky-note text-gray-600 text-xs"></i></div>
             <h3 class="font-bold text-gray-700">その他備考</h3>
           </div>
           <p class="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">{{ selectedProduct.notes }}</p>
         </div>
-
-        <!-- フッター情報 -->
         <div class="border-t border-gray-100 pt-4 flex items-center justify-between text-xs text-gray-400">
-          <div class="flex items-center gap-1">
-            <i class="fas fa-building"></i>
-            <span>{{ selectedProduct.maker }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <i class="fas fa-calendar"></i>
-            <span>{{ selectedProduct.createdAt }}</span>
-          </div>
+          <div class="flex items-center gap-1"><i class="fas fa-building"></i><span>{{ selectedProduct.maker }}</span></div>
+          <div class="flex items-center gap-1" v-if="selectedProduct.createdAt"><i class="fas fa-calendar"></i><span>{{ selectedProduct.createdAt }}</span></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- フローティング検索ヒント -->
-  <div v-if="showHint" class="fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl p-4 max-w-xs z-30 border border-purple-100">
+  <div v-if="showHint" class="fixed bottom-6 right-6 bg-white rounded-2xl shadow-2xl p-4 max-w-xs z-30 border border-blue-100">
     <div class="flex items-start gap-3">
       <div class="text-2xl">💡</div>
       <div>
         <p class="text-sm font-bold text-gray-700 mb-1">検索のヒント</p>
-        <p class="text-xs text-gray-500">「抹茶」「海鮮」「贈り物」など、キーワードで絞り込めます！</p>
+        <p class="text-xs text-gray-500">「メロン」「アイス」「牛タン」など、キーワードで絞り込めます！<br>🎰 ガチャで偶然の出会いも！</p>
       </div>
-      <button @click="showHint=false" class="text-gray-400 hover:text-gray-600 ml-1">
-        <i class="fas fa-times text-xs"></i>
-      </button>
+      <button @click="showHint=false" class="text-gray-400 hover:text-gray-600 ml-1"><i class="fas fa-times text-xs"></i></button>
     </div>
   </div>
+
+  <!-- 紙吹雪コンテナ -->
+  <div id="confetti-container" class="fixed inset-0 pointer-events-none z-[9999] overflow-hidden"></div>
 
 </div>
 
 <script>
 const { createApp, ref, computed, onMounted } = Vue;
-
 createApp({
   setup() {
     const searchQuery = ref('');
@@ -399,295 +608,244 @@ createApp({
     const favoriteIds = ref([]);
     const showHint = ref(true);
 
-    const products = ref([
-      {
-        id: 1,
-        name: '北海道えりも沖産　おさしみおおずわいがに　１kg',
-        catchCopy: '甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',
-        priceBase: 8800,
-        priceTax: 9504,
-        category: '海鮮',
-        maker: '㈱キョクイチ',
-        createdAt: '2025/6/20',
-        features: [
-          '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用',
-          '海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。',
-          '水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。',
-          '網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。',
-          '小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。',
-          '「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。',
-          'そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'
-        ],
-        recommend: 'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',
-        ingredient: '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',
-        method: '鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',
-        story: '3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',
-        cooking: '必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 2,
-        name: '北海道えりも沖産　おさしみおおずわいがに　500g',
-        catchCopy: '甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',
-        priceBase: 6300,
-        priceTax: 6804,
-        category: '海鮮',
-        maker: '㈱キョクイチ',
-        createdAt: '2025/6/20',
-        features: [
-          '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用',
-          '海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。',
-          '水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。',
-          '網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。',
-          '小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。',
-          '「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。',
-          'そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'
-        ],
-        recommend: 'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',
-        ingredient: '北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',
-        method: '鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',
-        story: '3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',
-        cooking: '必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 3,
-        name: 'アメリカ産　紅鮭のはらす（甘塩味）',
-        catchCopy: '紅鮭の希少部位「はらす」を切り落としでお届け。',
-        priceBase: 4600,
-        priceTax: 4968,
-        category: '海鮮',
-        maker: '㈱キョクイチ',
-        createdAt: '2026/2/7',
-        features: [
-          '紅鮭の希少部位「はらす」を切り落としでお届け。',
-          '紅鮭本来の濃厚な味わいと脂の乗りが特長です。',
-          'フライパン調理が可能で簡単！',
-          '大きさ不分別、厚みの幅が不揃いな商品です。'
-        ],
-        recommend: '鮭が大好きな老若男女。日々の食卓やお弁当に。',
-        ingredient: 'アメリカ産の天然紅鮭の腹身の部分、希少部位の「はらす」を切り落としにしてお届け。',
-        method: 'ふっくらとした身と極上の脂の乗り、濃厚な味わいがお楽しみいただけます。大きさ不分別、厚みの幅が不揃いな商品です。',
-        story: 'アメリカで紅鮭の製品（フィレ）を製造する際に生じた端材です。アメリカでは食べない部位ですが、脂の乗りと旨みが詰まった大変おいしい部位のため、加塩加工し製品化しました。',
-        cooking: '冷蔵庫で解凍後、グリルやフライパンでカリッとふっくら焼き上げてください。フライパン調理が可能で簡単です。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 4,
-        name: '太か！博多辛子めんたいこ',
-        catchCopy: '腹の大きな（太か！）明太子を丁寧に漬け込みました！',
-        priceBase: 4250,
-        priceTax: 4590,
-        category: '海鮮',
-        maker: '株式会社弘商',
-        createdAt: '2026/4/20',
-        features: [
-          '粒立ちの良い大きな卵を使用',
-          'ゆず風味の秘伝のタレでじっくり168時間熟成',
-          '大きすぎて規格外になるものを切子に加工して使用することでお買い得',
-          '250g×2P入りで保存にも便利'
-        ],
-        recommend: 'とにかく明太子は粒々感にこだわりたい',
-        ingredient: 'アラスカ産の原卵を使用。通常のギフト品の約2倍のサイズ。原卵が大きいので一粒も大きく粒立ちは最高です。',
-        method: 'アラスカの海で漁獲したすけとうだらの卵を船上で腹だし・凍結し鮮度をキープ。2次調味では清酒とオリジナルで配合した唐辛子、そこに柚子を加えて168時間かけてじっくりと熟成させます。',
-        story: '原料の卸事業をやっていく中で規格が大きすぎてギフトに使用しにくいサイズのものを商品化しております。各明太子メーカーに於いて価格は据え置きで内容量を減らすことで実質値上げを行っている実態があり大きいサイズの原卵では量目合わせが難しく使用量が減っている中で有効に活用したいと思い開発に取り組みました',
-        cooking: '炊き立てあつあつの白米と一緒にお召し上がりください。パスタやお茶漬けにもよく合います。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 5,
-        name: '鹿児島県産黒毛和牛＆国産和牛ホルモン　焼肉３種食べ比べセット',
-        catchCopy: '大切な方への贈り物やご家庭でこだわりの焼肉を',
-        priceBase: 9000,
-        priceTax: 9720,
-        category: 'お肉',
-        maker: '(株)ナンチク',
-        createdAt: '2026/2/9',
-        features: [
-          '鹿児島県産黒毛和牛は肉の旨味が強いことが特長です。',
-          'ウデは前脚上部の部位です。味は濃厚ですが よく動かす部位なので、',
-          '余計な脂が少なく適度な柔らかさが特長です。',
-          '赤身肉に続きあっさりと濃厚さが程よくブレンドされています。',
-          'バラはあばら骨周辺部位を指します。濃厚な旨みと脂身の多さが特長です。',
-          'ホルモンは焼肉・BBQにピッタリです。'
-        ],
-        recommend: '大切な方への贈り物として。家族や仲間でお肉の素材の旨味を味わう',
-        ingredient: '生産者が愛情いっぱいで育てました。食した人の美味しい笑顔を楽しみに、風味と味わいを出すために特別に配合された飼料を食べて育った牛です。',
-        method: '自社工場から一貫した管理体制により高品質を維持しています。',
-        story: '鹿児島県産黒毛和牛の美味しさを皆さんに知ってもらいたいと思い、味・品質が落ちずに少しでも安価で提供できるよう包装簡略化(一般的なトレーの使用・タンボール発送）で提案させていただきました。',
-        cooking: '火を通しすぎると硬くなってしまうため、強めの火加減で片面を焼き、うっすら肉汁が出てきたら返し、返した面に少し焼き色がついたら再度返して軽く炙ったら焼き上がりです。ホルモンは中火～弱火でじっくりとまずは皮側をきつね色になったら裏返し、脂側は透明になるまで軽く炙ったら焼き上がりです。',
-        media: '',
-        notes: '※ホルモンはしっかりと火を通してからお召し上がりください。'
-      },
-      {
-        id: 6,
-        name: '王様のローストビーフ',
-        catchCopy: '希少部位「ともさんかく」を使ったローストビーフ。やわらかでうま味たっぷり。',
-        priceBase: 5500,
-        priceTax: 5940,
-        category: 'お肉',
-        maker: '米久株式会社',
-        createdAt: '2026/2/3',
-        features: [
-          'もも肉の中でもサシが入った希少部位を贅沢に使用。柔らかく、厚切りでも食べやすい。',
-          '表面を焼いた後、真空調理でじっくりと加熱し、うま味を逃さずしっとりとした食感を実現。'
-        ],
-        recommend: '特別な方への贈り物、お肉好きへ自信を持っておすすめできます。',
-        ingredient: '牛のモモ肉の中で最もサシ（脂）が入りやすく、柔らかい希少部位です。程よい赤身とコクのあるジューシーな脂が特徴でローストビーフに最適。穀物肥育（グレインフェッド）された高品質、濃厚な旨味を楽しめます。',
-        method: '肉の表面をこんがりと直火でローストし肉のうま味を閉じ込めてから米久が得意とする真空調理法でじっくりと低温で加熱、ローストビーフの最大の特長である肉のうま味とやわらかさを最大限に引き出しました。',
-        story: '王様のローストビーフの最大の特長は、原料に希少部位「ともさんかく」を使用していることです。この部位を選んだ理由は、肉質の良さとやわらかさに加え、もう一つ重要なポイントがあります。ローストビーフは製法上、味付けが肉塊の表面にしかできません。そのため、味の付いた表面と素材本来の風味を楽しめる中心部とのバランスがおいしさの決め手となります。',
-        cooking: '冷凍庫で半解凍後（目安として24時間かかります。）、袋から取り出し、お好みの厚さにスライスしてお召し上がりください。スライスする際、お手元に十分ご注意ください。',
-        media: 'デパ地下を特集した番組に何度も放送され「大丸東京店全館従業員が選んだ人気【お惣菜・弁当部門】」の1位を獲得し紹介。その後の売場でもPOPにて訴求している',
-        notes: ''
-      },
-      {
-        id: 7,
-        name: '伊藤農園　100%ピュアジュース　みかんしぼり　2ℓ',
-        catchCopy: '和歌山の伊藤農園が作ったこだわりの100%ストレートジュース',
-        priceBase: 3550,
-        priceTax: 3834,
-        category: 'ドリンク',
-        maker: '伊藤農園',
-        createdAt: '2026/1/30',
-        features: [
-          '原材料は全て和歌山県産温州みかんのみ',
-          '100%ストレートジュース',
-          '伊藤農園の果肉からのみ搾る贅沢な搾汁方法で、濃厚かつ後味すっきりの味わい'
-        ],
-        recommend: 'ストレートジュースですので、お子様やご年配のかたにも、安心してお召し上がり頂けます。',
-        ingredient: '温暖な気候で水はけの良い土地で育った100%のストレートジュース。有田は温州みかんの生産量No.1で、地域のおいしいみかんだけ使用します。',
-        method: 'みかんを搾る。ただ、それだけのシンプルな作り方ですが、手搾りのジュースと同じ味になるよう一つひとつ果実を半分に切り、上からやさしく搾りました。みかんの素材そのままの、味が濃くのどごしのスッキリしたジュースに仕上がっています。搾汁方法として一般的なインライン方式、チョッパーパルパー方式がそれぞれ搾汁率約65%～50%に対して、この搾汁方法では約30%でみかんの美味しい部分のみを楽しむ事ができます。',
-        story: '約30年前、「紀州有田のおいしいみかんを多くの方に味わってもらいたい」という思いで、農家からB級みかんを農協より高く買い取り、みかんジュース作りを始めました。みかんを食べているような美味しさを表現できるまで試行錯誤を繰り返し、今では日本のみならず世界に向けても商品を出荷しています。',
-        cooking: '冷やしてそのまま、お好みで氷を入れてお飲みください。また焼酎で割ったり、炭酸で割って飲んでもおいしいです。',
-        media: '百貨店ギフト（三越伊勢丹、大丸松坂屋、阪急など）\n高級スーパー（明治屋、クイーンズ伊勢丹、三浦屋、トップワールド、光洋など）',
-        notes: ''
-      },
-      {
-        id: 8,
-        name: 'パインアメ　ミニアイス72個',
-        catchCopy: '大人気ロングセラー商品「パインアメ」とのコラボアイス！本物の「パインアメ」を使用し、パインアメを感じるひとくちアイスに仕上げました。',
-        priceBase: 3800,
-        priceTax: 4104,
-        category: 'スイーツ',
-        maker: '(株)アイガー',
-        createdAt: '2025/2/3',
-        features: [
-          '「パインアメ」との共同開発商品です。',
-          'パインアメを細かく砕いたアイス専用「クラッシュパインアメ」を使用しています。',
-          'クラッシュパインアメ入りのチョコが、シャリっと新感覚。',
-          'パインシャーベット×パインチョコ×クラッシュパインアメ　のパインづくしのアイスです。',
-          'ぱくっと手軽に食べられるひとくちタイプのアイスです。',
-          '何個でも食べれちゃうようなすっきりした味わい。',
-          '本物のパインアメと見間違えちゃうようなかわいいパッケージ。'
-        ],
-        recommend: 'パインアメがお好きな方。フルーツアイスがお好きな方。目新しいコラボ商品がお好きな方。',
-        ingredient: '単なるパイン味のアイスではなく、本物の「パインアメ」も原料に使用。',
-        method: 'あのパインアメをアイス専用に砕き、パインチョコに混ぜ込んでアイスを包みました。',
-        story: '試作をくりかえし、甘さ・すっぱさ・香りを調整しパインアメの味わいを再現しました。またパインアメをアイスに使用できるように専用に砕いているのですが、アメを砕く工場を探すところから砕く方法まで、試行錯誤を重ね、アイスに適したクラッシュパインアメに仕上げました。',
-        cooking: 'そのままパクっとお召し上がりください。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 9,
-        name: '四万十ドラマ　抹茶の焼きモンブラン10個入',
-        catchCopy: '京都産抹茶を楽しめる焼きモンブラン',
-        priceBase: 4500,
-        priceTax: 4860,
-        category: 'スイーツ',
-        maker: '（株）ごっつお便',
-        createdAt: '2026/2/2',
-        features: [
-          '抹茶モンブランクリームはひとつひとつ手絞り。',
-          'サブレ、アーモンド、モンブラン3層に抹茶を使用。',
-          'モンブランクリームのベースは高知県産さつまいも。',
-          'アクセントとしてサブレ生地に四万十産天日塩を使用。'
-        ],
-        recommend: '抹茶好き、焼菓子好きの方に。',
-        ingredient: '京都南山城村(みなみやましろむら)の抹茶を使用しています。',
-        method: 'モンブランクリームは一つ一つ手絞りです。',
-        story: '京都で唯一の村、南山城村にある「道の駅 お茶の京都 みなみやましろ村」は、道の駅立ち上げから関わらせていただいたご縁があります。そんな交流のなかで生まれた商品です。',
-        cooking: 'そのままお召し上がりください。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 10,
-        name: '菓匠　清閑院　宇治抹茶エンガディナー茶み12個入',
-        catchCopy: '宇治抹茶を練り込んだキャラメルにくるみをぎっしりと。',
-        priceBase: 4100,
-        priceTax: 4428,
-        category: 'スイーツ',
-        maker: '（株）菓匠清閑院',
-        createdAt: '2025/7/1',
-        features: [
-          '茶みの要(かなめ)は、香り高い京都府産の熟成宇治抹茶。',
-          '色合いもあざやかな宇治抹茶を練り込んだキャラメルに、くるみをぎっしりと。',
-          'バターを使用し、さっくりほろりとした食感に仕上げた生地で挟みました。',
-          '風味香ばしく、香り豊かな焼き菓子です。'
-        ],
-        recommend: '老若男女問わず、さまざまな方におすすめです。',
-        ingredient: '',
-        method: '見た目もかわいらしく仕上げました。',
-        story: 'エンガディナーとは…スイス発祥の伝統的なお菓子。現地ではヌストルテとも呼ばれ、バタークッキー生地にくるみを詰めてみたことからこのお菓子が生まれたといわれています。',
-        cooking: '常温でお召し上がりいただけます。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 11,
-        name: 'ミッシェル・ブラン　プレミアム　レモンバウム',
-        catchCopy: '冷やしても美味しい夏のレモンバウム',
-        priceBase: 3700,
-        priceTax: 3996,
-        category: 'スイーツ',
-        maker: 'ベーグジャパン（株）',
-        createdAt: '2026/3/10',
-        features: [
-          '冷やしても美味しい新提案！',
-          'ベースはホワイトチョコをしみ込ませて、バウムに上からレモンジュレをかけました。'
-        ],
-        recommend: '夏らしいものが食べたい方！ひんやりスイーツを楽しみたい方！',
-        ingredient: '',
-        method: 'バウムの上からかけているレモンジュレはセブンイレブン特別仕様となり、通常よりも増量しております。また、バウム本体もホワイトチョコをしみ込ませることで濃厚に仕上げました。',
-        story: '夏でもさっぱり爽やかに、かつ軽すぎないスイーツの食べ応えを楽しんでいただこうと、バウムクーヘンにレモンとホワイトチョコを掛け合わせることで、絶妙なバランスに仕上げました。',
-        cooking: 'そのまま、または冷やしても美味しく召し上がれます。',
-        media: '',
-        notes: ''
-      },
-      {
-        id: 12,
-        name: 'アトリエ・ド・フロマージュ　チーズスイーツセット',
-        catchCopy: '信州のチーズ工房から自慢のチーズを使ったスイーツの詰合せ。',
-        priceBase: 3950,
-        priceTax: 4266,
-        category: 'スイーツ',
-        maker: 'アトリエ・ド・フロマージュ',
-        createdAt: '2026/3/30',
-        features: [
-          '自家製「生チーズ」を使った滑らかなチーズケーキ「フォンテンヌブロー」',
-          '厳選したチーズを使い、さっぱりレモン風味の「スティックチーズケーキ」',
-          '2種の異なるチーズスイーツの食べ比べセット'
-        ],
-        recommend: 'チーズ、チーズケーキが好きな幅広い世代の方。',
-        ingredient: '「フォンテンヌブロー」に使用している「生チーズ」は長野県産の生乳を使い、長野県東御市（とうみし）のチーズ工房で製造しています。',
-        method: '「フォンテンヌブロー」はチーズ、生クリーム、砂糖のみを使い、素材の良さをシンプルに生かした製法です。「スティックチーズケーキ」は重すぎないのに、しっかりとチーズ感を味わえる食味を目指した製法です。',
-        story: '美味しいチーズをもっと手軽にお客様に広めたいという想いから2種のチーズケーキを開発しました。「フォンテンヌブロー」は、自家製のチーズの美味しさをダイレクトに味わっていただけるように最小限の素材の構成で製造しました。「スティックチーズケーキ」は、手軽に召し上がっていただけるようスティックタイプにしましたが、しっかりと食べ応えのある商品を目指しました。',
-        cooking: '冷凍状態から冷蔵庫で5時間ほどかけてゆっくり解凍いただくのがおすすめです。',
-        media: '',
-        notes: ''
+    // ===== ガチャ状態 =====
+    const gachaOpen = ref(false);
+    const gachaSpinning = ref(false);
+    const gachaResult = ref(null);
+    const gachaCount = ref(0);
+    const gachaHistory = ref([]);
+    const spinEmoji = ref('🎁');
+
+    const spinEmojis = ['🎁','🎰','✨','🎊','🎉','🌟','💫','🎯','🎪','🎨'];
+    let spinInterval = null;
+
+    const openGacha = () => {
+      gachaOpen.value = true;
+      gachaResult.value = null;
+      gachaSpinning.value = false;
+    };
+
+    const closeGacha = () => {
+      gachaOpen.value = false;
+      gachaSpinning.value = false;
+      if (spinInterval) clearInterval(spinInterval);
+    };
+
+    const spinGacha = () => {
+      gachaSpinning.value = true;
+      gachaResult.value = null;
+
+      // スロット絵文字アニメーション
+      let emojiIdx = 0;
+      spinInterval = setInterval(() => {
+        spinEmoji.value = spinEmojis[emojiIdx % spinEmojis.length];
+        emojiIdx++;
+      }, 80);
+
+      // 抽選時間（演出）
+      const duration = 1800 + Math.random() * 800;
+      setTimeout(() => {
+        clearInterval(spinInterval);
+        // ランダム抽選
+        const idx = Math.floor(Math.random() * products.value.length);
+        const result = products.value[idx];
+        gachaResult.value = result;
+        gachaSpinning.value = false;
+        gachaCount.value++;
+        gachaHistory.value.push(result);
+
+        // レアリティに応じた演出
+        const rarity = getGachaRarity(result);
+        if (rarity.level >= 2) {
+          launchConfetti(rarity.level);
+        }
+      }, duration);
+    };
+
+    const viewGachaDetail = () => {
+      selectedProduct.value = gachaResult.value;
+      gachaOpen.value = false;
+    };
+
+    // レアリティ判定（価格ベース）
+    const getGachaRarity = (product) => {
+      const price = product.priceTax;
+      if (price >= 8000) return { level: 3, label: '✨ LEGENDARY', icon: '👑', class: 'rarity-legendary' };
+      if (price >= 6000) return { level: 2, label: '💎 RARE', icon: '💎', class: 'rarity-rare' };
+      return { level: 1, label: '🌟 NORMAL', icon: '⭐', class: 'rarity-common' };
+    };
+
+    // セレンディピティメッセージ
+    const serendipityMessages = [
+      'こんな出会いがあるとは！あなたの直感が選んだ一品です。',
+      '偶然の出会いが最高のギフトを連れてきました✨',
+      '運命が引き寄せた、あなただけの特別な一品。',
+      '探していなかったのに、ぴったりの商品が見つかりました！',
+      'この出会いは偶然ではないかもしれません🌟',
+      '今日のあなたにはこれが必要だったのかも。',
+      'ガチャが選んだ、今日の運命の一品です！',
+      '思いがけない発見！これがセレンディピティです✨',
+    ];
+
+    const getSerendipityMessage = (product) => {
+      const idx = (product.id + gachaCount.value) % serendipityMessages.length;
+      return serendipityMessages[idx];
+    };
+
+    // 紙吹雪エフェクト
+    const launchConfetti = (level) => {
+      const container = document.getElementById('confetti-container');
+      if (!container) return;
+      const colors = level >= 3
+        ? ['#ffd700','#ff8c00','#ff4500','#ff69b4','#00bfff']
+        : ['#a855f7','#6366f1','#ec4899','#06b6d4'];
+      const count = level >= 3 ? 60 : 30;
+
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const el = document.createElement('div');
+          el.className = 'confetti-piece';
+          const size = 6 + Math.random() * 10;
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          const left = Math.random() * 100;
+          const duration = 2 + Math.random() * 2;
+          const delay = Math.random() * 0.5;
+          el.style.cssText = `
+            left:${left}vw; top:-20px;
+            width:${size}px; height:${size}px;
+            background:${color};
+            border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+            animation-duration:${duration}s;
+            animation-delay:${delay}s;
+          `;
+          container.appendChild(el);
+          setTimeout(() => el.remove(), (duration + delay) * 1000 + 100);
+        }, i * 30);
       }
+    };
+
+    const products = ref([
+      {id:1,name:'博多あまおうのこだわりアイス',catchCopy:'「博多あまおう」をとことん楽しむアイスです。',priceBase:4000,priceTax:4320,category:'アイス',maker:'(株)ヤバケイ',createdAt:'',features:['苺と相性のよい素材を選び、全く異なる4つの味わいに仕上げました。','大人から子どもまで幅広く愛される果物を使ったアイスです。'],recommend:'家族やご友人の集いにぴったりのギフトセットです。',ingredient:'旬の時季のあまおう、北海道産生クリーム・クリームチーズを使用しています。',method:'温暖な気候に恵まれた福岡県で育った「博多あまおう」。他県では生産されていない「博多あまおう」は数ある苺の銘柄の中でも人気が高い品種です。',story:'',cooking:'アイスが少し溶けた頃にお好みの食感でお召し上がりください。',media:'',notes:''},
+      {id:2,name:'～果実の便り～国産フルーツアイス物語',catchCopy:'春夏秋冬を彩る果実、それぞれの果実から美味しさの便りが届く、そんなアイスの物語',priceBase:4100,priceTax:4428,category:'アイス',maker:'(株)アイガー',createdAt:'',features:['「あかい」「まるい」「おおきい」「うまい」と四拍子そろった福岡県産のあまおう使用','北海道産の赤肉メロンピューレを使ったメロンのほんのり甘い香り','岡山県産の清水白桃の果汁をつかったすっきりまろやかな甘味','長野県産の巨峰果汁をつかった、みずみずしく芳醇な香り','青森県産のりんご（王林）果汁をつかった爽やかな酸味と甘みのバランス','和歌山県産の温州みかん果汁をつかった、柑橘系の素朴ですっきりした味','沖縄県産パインアップル果汁をつかった、清涼感のあるフルーティーな味'],recommend:'7種類、合計16個のアイスが入ったお買得感のあるアイスです。家族や仲間たちとのひととき、大人数でのブレイクタイムに最適です。',ingredient:'産地特産くだものの果汁やピューレを原料にしています。素材の良さが引き立つアイスを作るために厳選しています。',method:'加熱殺菌の時間を極力減らして素材の風味を損なわないようにしています。',story:'このアイスのコンセプトからは、高級品というよりも子供からご年配の方々まで幅広い年齢層の方に食べて頂けるように、パッケージはあえてギフトらしくなく楽しいイメージにしました。「わかりやすくて、美味しいアイス」それがこの商品のモットーです。',cooking:'',media:'ギフト・通販用の商品です。',notes:''},
+      {id:3,name:'ゴディバ　アイスコレクション10個入',catchCopy:'ゴディバがお届けする、チョコレートを楽しむアイスをバラエティ豊かに詰め合わせました。',priceBase:5000,priceTax:5400,category:'アイス',maker:'ゴディバジャパン(株)',createdAt:'',features:['90mlカップアイス6種の詰め合せです。','ストロベリーチョコレート、ミルクチョコレート、チョコレートチップ','ゴディバならではのまろやかな口どけと深い味わいをお楽しみいただけます。'],recommend:'ゴディバが自信をもってお届けする上質なアイスの詰め合わせです。ご自身へのごほうびとしてはもちろん、お中元やお歳暮、手土産など、大切な方へのギフトにぴったりです。',ingredient:'商品は日本製です。',method:'1926年、ベルギー・ブリュッセルで創業。ゴディバは、日本に、高級チョコレートの先駆けとして1972年に進出し、その後ゴディバのコレクションは世界で広く愛され続けています。',story:'',cooking:'',media:'',notes:''},
+      {id:4,name:'ハーゲンダッツ　セレクトギフトセット',catchCopy:'人気の定番フレーバーと、季節限定のブリュレチーズケーキ、和のスイーツアソートをセットにしました。',priceBase:5300,priceTax:5724,category:'アイス',maker:'(株)アイガー',createdAt:'',features:['「ミニカップ　バニラ」マダガスカル産バニラの甘く豊かな香り。','「ミニカップ　ブリュレチーズケーキ」食感のコントラストと香ばしさ','「バー　バニラチョコレートマカデミア」甘く香り豊かなバニラをカカオで包んだ贅沢な一品','「和のスイーツ アソート」　馴染みのある和の味わいを洋スイーツに'],recommend:'家族や友人との団らんや会社でのリフレッシュに、幸せなひと時をお届け。',ingredient:'北海道根釧地区で牧草や土壌にまでこだわって飼育した乳牛のミルクを使用しています。',method:'オーバーラン（空気含有量）を20～30%と低く抑えることで、濃厚で食べ応えのある味わいを実現しました。',story:'',cooking:'冷凍庫から出して少し待って柔らかくなった頃が食べごろ。',media:'',notes:''},
+      {id:5,name:'西洋銀座監修　ジェラートセット',catchCopy:'西洋銀座が監修したジェラート。人気の抹茶をたっぷり入れた詰合せ。',priceBase:4200,priceTax:4536,category:'アイス',maker:'(株)アイガー',createdAt:'',features:['「ミルク」は生クリームと濃縮乳を使用し、ミルクの味わいを引き立てています。','爽やかな苺ソースをアイスに混ぜ込み、苺の風味を豊かにしました。','京都・宇治の抹茶を使用しました。香り高い抹茶の風味をお楽しみいただけます。'],recommend:'食後のデザートや、おやつに最適。真夏の暑さ対策としてもおすすめです。',ingredient:'抹茶：京都府宇治地域にて、伝統的な方法で栽培・加工された高品質な宇治抹茶を使用しています。',method:'加熱殺菌の時間を極力減らして素材の風味を損なわないようにしました。',story:'',cooking:'冷凍庫から出して少し待って柔らかくなった頃が食べごろ。',media:'',notes:''},
+      {id:6,name:'大山乳業　アイスギフト（ミルク・抹茶）',catchCopy:'鳥取県産の生乳とクリームを使用したアイスクリームの詰合せです。',priceBase:4300,priceTax:4644,category:'アイス',maker:'大山乳業農業協同組合',createdAt:'',features:['白バラプレミアム（ミルク）は乳本来の濃厚な味わいが感じられます。','抹茶は京都府産石臼挽き抹茶をあわせました。抹茶の旨味が際立ちます。','鳥取県産の生乳とクリームを使用し、原材料にこだわったプレミアムアイス。','圧倒的なミルクの味わい。生乳の美味しさを伝えるプレミアムアイスクリーム。'],recommend:'濃厚なアイスクリームが好きな人。ちょっと贅沢にアイスを食べたい人に。',ingredient:'鳥取県産の生乳とクリームを使用。白バラプレミアム（ミルク）には、マダガスカル産バニラを使用。抹茶は、京都府産石臼挽き抹茶を使用。',method:'生乳のおいしさに自信のある白バラだからこそ、ミルクの味わいをしっかり感じていただけるくちどけを目指し、何度も試作を行いました。',story:'私たちの自信と誇りでもある生乳の品質とおいしさ。その良さを最大限に生かすアイスクリームを目指し、開発しました。濃厚で圧倒的なミルクの味わいの中に感じるスッキリとした爽やかさ。最後まで美味しく食べられ、飽きのこない、いつまでも皆さまに愛されるアイスクリームをつくりました。',cooking:'そのまま食べて、ミルクの濃厚な味わいを堪能してください。',media:'',notes:''},
+      {id:7,name:'玉林園　グリーンソフトギフトセット8個入',catchCopy:'あと味さっぱりな和歌山の名物ご当地抹茶ソフトアイス',priceBase:3550,priceTax:3834,category:'アイス',maker:'(株)玉林園',createdAt:'',features:['昭和33年生まれ、世界初といわれる抹茶味のソフトクリーム','苦みをおさえた優しい甘さであと味さっぱりです。','国産抹茶を使用し石臼で丁寧に挽いていますので抹茶本来の風味が楽しめます。','地元和歌山ではご当地ソウルフードとして親しまれています。','ソフトクリーム型でコーンのキャップを被った、他にはあまりない形状。','パッケージのかわいいアヒルのキャラクター「グリンちゃん」が目印。'],recommend:'抹茶特有の苦みがほとんどなく、優しい甘さであと味もさっぱりしているので、子供からご年配の方まで幅広くお楽しみいただけます。',ingredient:'国産の抹茶を100％使用しています。',method:'現状一つ一つ手巻きし手作りしております。',story:'弊社はお茶屋ですが、夏場には茶葉がほとんど売れず困っていました。そんななか開発好きだった当時の社長が海外では抹茶にミルクを入れて飲んでいるという話を耳にし、それをヒントに当時まだ珍しかったソフトクリームに抹茶を合せて商品化したのが始まりです。',cooking:'冷凍庫から出してそのままお召し上がりください。',media:'24年：読売テレビ かんさい情報ネットten.お天気コーナー / 20年：関西テレビ ちゃちゃ入れマンデー / 19年：TBS がっちりマンデー / 09年：読売テレビ 秘密のケンミンSHOW',notes:''},
+      {id:8,name:'ブルーシール　ギフト18',catchCopy:'アメリカ生まれの沖縄育ちであるブルーシールアイスの詰合せギフト。',priceBase:6800,priceTax:7344,category:'アイス',maker:'フォーモストブルーシール(株)',createdAt:'',features:['沖縄フレーバー、アメリカンフレーバーを詰め込んだブルーシールギフト','全12種類のアイスがあり、そのすべてに「沖縄県産キビ糖」を使用','植物油脂を多く使用することにより、コクを感じながらもあと味がさっぱり','人気の塩ちんすこうや紅イモ、沖縄黒糖やピスタチオなど、厳選','着色料も全て天然着色料を使用、安心安全な商品作りを行っています。'],recommend:'沖縄に興味を持たれている方、お得に・たくさんの種類のアイスを召し上がりたいとお考えの方にお勧めです。',ingredient:'沖縄県産原料を使用しています。（沖縄紅イモ、琉球ロイヤルミルクティー、塩ちんすこう、沖縄黒糖、沖縄シークヮーサー、沖縄パイン）全てのフレーバーに沖縄県産キビ糖を使用しております。',method:'素材を生かすことができるように原材料選定を行なっております。コクがありながらも植物油脂を使用し後味がさっぱりとなるよう仕立てております。',story:'「アメリカ生まれ沖縄育ち」のキャッチコピーのもと、6種類の沖縄フレーバー、6種類のスタンダードフレーバーを展開して品揃えしています。箱を開ける時のワクワク、選ぶワクワク、食べる時のワクワク、アイスを楽しむときの笑顔を生み出すギフトセットになっております。',cooking:'冷凍庫からお出しいただいて、そのままお召し上がりください。',media:'自社SNSにて発信。',notes:''},
+      {id:9,name:'銀座トトキ監修　山形県産果実のアイス',catchCopy:'山形県産白桃とシャインマスカットが味わえるアイスです。',priceBase:4600,priceTax:4968,category:'アイス',maker:'(株)ヤバケイ',createdAt:'',features:['ひんやりとした果肉と果汁ソースがアイスと絡み合います。','自然派のフレンチの名店「ギンザ トトキ」が監修するアイスギフト','[白桃]山形県産の白桃をゴロッと大きな果肉で贅沢にトッピング','[シャインマスカット]山形県産シャインマスカットを贅沢に使用。','[シャインマスカット]半割り果肉を2粒のせ、皮ごと楽しめるジューシーな味わい'],recommend:'家族やご友人の集いにぴったりのギフトセットです。',ingredient:'山形県産恋香桃（れんかとう）シラップ漬け、山形県産シャインマスカットを使用しています。',method:'表面にゴロっとした果肉をトッピングし、繊細なフルーツの味わいを引き立てるため、アイスの配合にもこだわりました。',story:'【銀座トトキ】真っ白い空間の自然派フレンチレストランです。清潔感ある白を基調としたモダンな店内は居心地よく広がり、料理が運ばれた時に完成されるデザイン空間です。旬のいちばん美味しい時期の素材の良さを、最大限にひきだした自然派料理をお楽しみください。',cooking:'',media:'',notes:''},
+      {id:10,name:'patisserie KIHACHI　アイス＆シャーベット　5種10個入',catchCopy:'人気のキハチ トライフルロール®やケーキからイメージしたパフェ仕立ての華やかなアイス＆シャーベット。',priceBase:5150,priceTax:5562,category:'アイス',maker:'アイビーカンパニー(株)',createdAt:'',features:['パティスリー キハチの人気のケーキがアイスに。','パティスリー キハチのパティシエが監修。','パフェ仕立ての華やかなアイス＆シャーベット。','5種類の色とりどりのパフェアイスは見た目も味も楽しめます。','トッピング下のアイスは、5種類ともすべて異なるフレバーです。'],recommend:'30歳～50歳の女性。ご褒美用。ケーキ好きな方。',ingredient:'①トライフル：なめらかなバニラアイスに、4種のフルーツ（苺、ブルーベリー、マンゴー、キウイ）をトッピング。②ストロベリーショート：苺の果肉とピューレを合わせたアイスクリームに、苺の果肉をトッピング。③ショコラ：ベルギー産のクーベルチュールを使ったチョコアイスに、生チョコ、チョコクランチをトッピング。④モンブラン：栗のペーストとカラメルシロップを合わせたマロンアイスクリームに、ホイップとマロンクリームを絞り、渋皮栗をトッピング。',method:'',story:'パティスリー キハチのシグネチャーでもあるキハチ トライフルロール®や、定番の苺のショートケーキ、モンブランをイメージしたアイスに仕立てる為、パティシエと試行錯誤して作りました。また、ケーキの様な見た目の華やかさにもこだわりました。',cooking:'',media:'',notes:''},
+      {id:11,name:'銀座千疋屋　銀座プレミアムアイスセレクション',catchCopy:'銀座千疋屋が厳選した高品質のフルーツは、香り高く芳醇な味わいが濃厚なクリームと絶妙に調和しています。',priceBase:5000,priceTax:5400,category:'アイス',maker:'(株)パティスリー銀座千疋屋',createdAt:'',features:['サクサク食感のクッキーシューに閉じ込めたプレミアムシューアイス','厳選した高品質のフルーツと、香り高く芳醇な味わいが濃厚なクリームが調和'],recommend:'お子様からご年配の方まで幅広くお喜びいただけます。',ingredient:'カスタードバニラ：カラメルソースのほろ苦さと、カスタードバニラの優雅なハーモニー。いちご：香り高い「とちおとめ」を使用したクリーミーなアイス。クラウンメロン：「静岡県産クラウンメロン」ピューレを贅沢に使用。マンゴー：マンゴーの王様「アルフォンソマンゴー」ピューレを使用。マスカット：高貴な香りのマスカットのソースを混ぜ込みました。ピーチ：山梨県産のピーチ果汁を使用。',method:'「本当に美味しいアイスクリームを創りたい」その思いから出来上がったプレミアムアイス。美味しいアイスクリームの一番のポイントは、「良質の素材」につきます。銀座千疋屋が厳選した高品質のフルーツは、香り高く芳醇な味わいが濃厚なクリームと絶妙に調和しています。',story:'',cooking:'',media:'',notes:''},
+      {id:12,name:'パインアメ　ミニアイス72個',catchCopy:'大人気ロングセラー商品「パインアメ」とのコラボアイス！本物の「パインアメ」を使用し、パインアメを感じるひとくちアイスに仕上げました。',priceBase:3800,priceTax:4104,category:'アイス',maker:'(株)アイガー',createdAt:'',features:['「パインアメ」との共同開発商品です。','パインアメを細かく砕いたアイス専用「クラッシュパインアメ」を使用しています。','クラッシュパインアメ入りのチョコが、シャリっと新感覚。','パインシャーベット×パインチョコ×クラッシュパインアメのパインづくしのアイスです。','ぱくっと手軽に食べられるひとくちタイプのアイスです。','何個でも食べれちゃうようなすっきりした味わい。','本物のパインアメと見間違えちゃうようなかわいいパッケージ。'],recommend:'パインアメがお好きな方。フルーツアイスがお好きな方。目新しいコラボ商品がお好きな方。',ingredient:'単なるパイン味のアイスではなく、本物の「パインアメ」も原料に使用。',method:'あのパインアメをアイス専用に砕き、パインチョコに混ぜ込んでアイスを包みました。',story:'試作をくりかえし、甘さ・すっぱさ・香りを調整しパインアメの味わいを再現しました。またパインアメをアイスに使用できるように専用に砕いているのですが、アメを砕く工場を探すところから砕く方法まで、試行錯誤を重ね、アイスに適したクラッシュパインアメに仕上げました。',cooking:'そのままパクっとお召し上がりください。',media:'',notes:''},
+      {id:13,name:'いちごアイス50個入',catchCopy:'苺と練乳アイスのベストマッチ',priceBase:5050,priceTax:5454,category:'アイス',maker:'株式会社ごっつお便',createdAt:'',features:['食べ頃が「苺が少し柔らかくなった頃」のため、苺が少し柔らかくなっても、中のアイスが溶け出ない様にレシピを考え、毎年改良し、現在の商品が出来上っています。','苺の酸味とアイスの練乳風味の組み合わせがベストマッチ。','個包装になっている為、冷凍保存しやすく、衛生的で、お皿も汚れません。','冷凍食品扱いですが、賞味期限が長い(製造日より540日)。','通常のアイスでは「オーバーラン」をかけると溶ける寸前で空気が出てしまい食感が変わってしまいますが、「原液製法」により柔らかくなっても食感が変わりません。'],recommend:'一口サイズで個包装のため、ご家庭・職場・パーティーなどどこでも、食器・スプーンなどがなくても食べられるので、皆様でお楽しみ下さい',ingredient:'練乳風味のアイスをゼラチン(安定剤として)で溶解しにくくしました',method:'練乳風味のアイスをゼラチン(安定剤として)で溶解しにくくしました。',story:'苺を食べられる器と考え、その器に練乳風味のアイスを組み合わせたのは、ベストマッチであったと思います。ギフト商品として通常荷姿を「発泡容器・ドライアイス」でお届けしておりますが、「ご自宅用」として企画した当商品は、「業務用いちごアイス」をそのまま段ボールに入れ、「食べ方の栞」とともに「蓄冷材」を入れて、ヤマト冷凍クール便にてお届けする事により、ギフト品に比べ、かなりお買得な価格を実現しました。',cooking:'お好みにより「苺が少し柔らかいくらいが食べごろです」と栞に記載しております。',media:'百貨店・量販店・CVSのお中元・お歳暮・母父の日などで販売していただいております。',notes:''},
+      {id:14,name:'たっぷり牛タン　塩味',catchCopy:'贅沢な厚切り！柔らかジューシーな厚切り牛タン',priceBase:7650,priceTax:8262,category:'お肉',maker:'(株)ネクサス',createdAt:'',features:['脂の乗りが良く柔らかい部位：希少性の高い、タン中・タン元を厳選','贅沢な厚切りカット：約10mmの厚さで食べ応え抜群','表面ダイヤモンドカット加工：均一な焼き上がりと味なじみの良さ','柔らかさと歯ごたえのバランス：噛み切りやすい絶妙な食感','便利な真空パック：500gの使い切りサイズで保存に便利','塩味の絶妙な加減：シンプルながら美味しさを引き立てる味付け'],recommend:'本格的な牛タン料理を自宅で楽しみたい方・贅沢な食材でおもてなしをしたい方・肉厚で食べ応えのある牛タンが好きな方・簡単に調理できる高品質な食材を探している方',ingredient:'牛タンの中でも上質なタン中・タン元の部分を使用。',method:'厚切りカット：約10mmと贅沢な厚さにカットし、食べ応えを重視。表面スリット加工：均一な焼き上がりと味の浸透を促進する独自の加工。真空パック：500gずつの使いやすいサイズで新鮮さを保持。',story:'本商品は、本格的な牛タン料理を自宅で簡単に楽しめるよう開発されました。牛タン専門店の味を追求し、厳選された部位と独自の加工技術を組み合わせることで、プロ顔負けの味わいを実現しています。',cooking:'解凍：冷蔵庫内で自然解凍を行ってください。調理：グリルや焼肉用コンロで焼くのがおすすめです。焼き加減：表面に焼き目をつけ、中はジューシーに仕上げるのがポイント。付け合わせ：ねぎやレモン、わさびなどと一緒に召し上がるとより美味しく楽しめます。',media:'東北版2024年人気お礼品ランキング（確定）1位',notes:''},
+      {id:15,name:'お家で牛たん焼き～味付け切り落とし～',catchCopy:'お家で本格牛タン焼き！切り落としでお得に贅沢な味わいを',priceBase:5300,priceTax:5724,category:'お肉',maker:'(株)ネクサス',createdAt:'',features:['タン先を使用した、厚さ約3ミリのスライス牛タン','肉質がしっかりとした濃厚な味わい','特製塩だれに漬け込み済み','解凍後すぐに調理可能','便利な真空パック：500gの使い切りサイズで保存に便利'],recommend:'牛タンをたくさん食べたい方・お得に牛タンを楽しみたい方・普段使いやおつまみを探している方・手軽に本格的な味を楽しみたい方',ingredient:'タン先を使用することで、しっかりとした肉質と濃厚な味わいを実現しています。噛むほどに凝縮した肉の旨みと歯ごたえを感じられます。',method:'特製の塩だれに漬け込まれているので、解凍後すぐに焼くだけで美味しくお召し上がりいただけます。約3ミリの厚さでのスライスは、家庭での調理に適した厚さです。',story:'牛タンの人気に応えつつ、より多くの方に楽しんでいただけるよう、切り落としとして提供することで価格を抑えました。ご家庭で手軽に本格的な牛タン焼きを楽しめる商品として開発されました。',cooking:'冷蔵庫内で自然解凍します。フライパンやグリルで両面をこんがりと焼きます。お好みで七味唐辛子やレモンを添えて、ビールや日本酒とともに、おつまみとしてもお楽しみ頂けます。',media:'',notes:''},
+      {id:16,name:'ハイライフポークテーブル監修バーベキューバックリブ',catchCopy:'ボリューム感のあるバックリブを特製ソースで焼き上げました。',priceBase:4500,priceTax:4860,category:'お肉',maker:'',createdAt:'',features:['カナダの自然と愛情が生んだ三元豚「ハイライフポーク」を使用','カナダ産のハイライフポークは麦を中心とした飼料で育てられています。','日本人好みの脂が甘く、あっさりとして口当たりの良い仕上がり','バックリブ（骨付きロース肉）に特製バーベキューソースを塗り、直火バーナーで香ばしく焼き上げました。'],recommend:'ご褒美や特別な日を過ごしたい方',ingredient:'カナダ産のジューシー・やわらかなハイライフポークを使用',method:'日本人好みの豚肉「ハイライフポーク」のバックリブに特製バーベキューソースを塗り、直火バーナーで香ばしく焼き上げました。',story:'ハイライフポークテーブルのシェフ、篠嵜 司氏に監修いただき、特製のバーベキューソースを仕上げました。',cooking:'【電子レンジの場合】解凍後、内袋から取り出して、包丁で半分にカットしレンジ対応のお皿に移してから、ラップをかけずに下記時間を目安に温めてください。1/2パック 500W約2分30秒 600W約2分20秒',media:'',notes:''},
+      {id:17,name:'平田牧場　三元豚ロールステーキ',catchCopy:'薄くスライスした三元豚を何層にも重ねてロールステーキに。',priceBase:4300,priceTax:4644,category:'お肉',maker:'(株)平田牧場',createdAt:'',features:['3種類の純血種の長所を掛け合わせ、一般の豚よりも長い時間をかけて育てています。','平田牧場三元豚の上品な旨さと甘味をストレートに感じられる一品。','付属のとびうおのだしは、焼き物・麺類・鍋物・丼物・煮物など、便利な万能つゆです。'],recommend:'平田牧場三元豚の上品なうまみをストレートに感じることができるロールステーキは、小さなお子様からご年配の方まで幅広い世代にオススメです。',ingredient:'平田牧場三元豚：肉の繊維のきめが細かく、柔らかさもありながら心地よい歯ごたえが特長です。とびうおのだし：山形県庄内が面している日本海沿岸で親しまれる、深みのある旨味でしつこさのない上質な高級だしです。',method:'平田牧場三元豚は、3つの品種の豚を掛け合わせた「三元交配豚」です。特に肉質を重視した系統選抜を行い、品種系統の明らかな3種類の豚を掛け合わせることで、最高の肉質を実現することに成功しました。',story:'主に加工原料や挽肉・小間肉として使用されることが多い三元豚ウデ肉は実は赤身と白身（脂）のバランスが絶妙でブランドポークならではの美味しさが感じられる部位です。更にひと手間加えることで、この美味しさをよりストレートにご堪能頂く為に作り上げました。',cooking:'①熱したフライパンに少量の油を引き、凍ったままのロールステーキを入れて塩コショウをふって弱火で4分～5分間蒸し焼きにします。②裏返したあと、ワインや料理酒をかけてフタをし、弱火で4分～5分間蒸し焼きにします。※中に火が通るまで十分に加熱してください。',media:'',notes:''},
+      {id:18,name:'サイボク豚肉味噌漬け　7枚セット',catchCopy:'サイボク銘柄豚「ゴールデンポーク」とオリジナル味噌の絶妙なハーモニー。',priceBase:5000,priceTax:5400,category:'お肉',maker:'サイボク',createdAt:'',features:['サイボク銘柄豚ゴールデンポークを使用','ゴールデンポークに合うオリジナル味噌','ドイツ食品品質コンテストで金メダル受賞'],recommend:'年配の方や親戚への贈答用に上品で懐かしい味わいが好まれます。',ingredient:'ゴールデンポークはサイボクで改良した血統の豚を組み合わせました。きめ細やかな肉質で霜降りがあり、柔らかなお肉です。焼いても縮みが少なく、お肉に旨みがあります。',method:'サイボクゴールデンポークに合うように特別にブレンドしたお肉専用味噌に漬け込みました。',story:'お客様の声からヒントを頂き、美味しい味付け肉で開発しました。',cooking:'①漬け込まれたお肉を取り出しお肉表面の味噌を取り除きます。②フライパンにアルミホイルを敷きフタを少しずらして中弱火で片面を7～8分ずつ（両面合わせて約15分）焼きます。※魚焼き用グリルでも同様の焼き方で美味しく召し上がれます。',media:'なし',notes:'なし'},
+      {id:19,name:'柿安　黒毛和牛牛肉ひつまぶし詰合せ',catchCopy:'伝統の技法でじっくり炊き上げ旨味を凝縮した黒毛和牛のお肉をご堪能いただけます',priceBase:5600,priceTax:6048,category:'お肉',maker:'柿安本店',createdAt:'',features:['黒毛和牛のブリスケの部位を使用、肉の旨味を大切にしました。','浮かし煮の技法で余分な脂は落としじっくり丹精込めて炊き上げました。','お出汁は、お肉を炊く際にでるお出汁をこし、鰹出汁と合わせ深みのある味わいに。','牛肉ひつまぶしとして、ご飯と合わせ食べ方色々、お楽しみいただけます。'],recommend:'お子様からご年配の方まで、幅広くお楽しみいただけます。個食で分けてもお召し上がりいただけます。',ingredient:'黒毛和牛の肉質、脂身のうまさにこだわりました。そしてお出汁は、お肉の加工過程で出る上品な肉出汁をベースに鰹出汁と合せ仕上げました。',method:'',story:'',cooking:'【お湯で温める場合】中袋（レトルトパウチ）の封を切らずに、熱湯の中に入れ、4～6分沸騰させ温めます。',media:'なし',notes:'なし'},
+      {id:20,name:'柿安　三重　松阪牛　すき焼　切落し',catchCopy:'松阪肉 老舗柿安。柔らかくキメの細かい霜降り肉のおいしさを是非ご堪能ください。',priceBase:6000,priceTax:6480,category:'お肉',maker:'柿安本店',createdAt:'',features:['黒毛和牛の最高峰、松阪牛の切り落とし。','雌の未経産 かつ 格付けはA5のみのお肉を使用。','やわらかく 旨味が多いのが特長。','お手軽に調理ができ、食べやすい。'],recommend:'お子様からご年配の方まで幅広くおすすめです。',ingredient:'雌の未経産 かつ 格付けはA5のみ使用しているので やわらかく 旨味が多いのが特長。',method:'とろけるような極上の霜降りと厳選された赤身肉をブレンドし、肉のうまみをより引き立てています。',story:'牛肉の旨味が多い松阪牛を、どなたでも召し上がりやすい切落しを開発。すき焼はもちろん、肉じゃが等の肉料理全般にあわせられます。',cooking:'すき焼わりしたにくぐらせて、舌ざわりの心地よいなめらかな食感です。様々なお料理で美味しくお召し上がりいただけます。',media:'なし',notes:'なし'},
+      {id:21,name:'飛騨牛5等級　すきやき用',catchCopy:'自然の恵みが創り出した磨きぬかれた味わい【飛騨牛】5等級すきやき用',priceBase:6100,priceTax:6588,category:'お肉',maker:'JA全農ミートフーズ',createdAt:'',features:['岐阜県の豊かな自然に育まれた銘柄牛「飛騨牛」です。','生産農家の深い愛情と優れた飼育技術によって産み出されています。','全国和牛能力共進会にて第8回・第9回と連続で「最優秀枝肉賞」受賞。','「飛騨牛5等級」赤身肉のすきやき用は、適度な霜降りと肉の旨みが特長。','おおよそ2～3人前の内容量です。','すきやきだけでなく、焼しゃぶ・炒め物など様々な料理にお使いいただけます。'],recommend:'お肉のお好きな方・ご家族の夕食に、お好みの調理方法にて',ingredient:'飛騨牛の5等級のみを原料とし、赤身の肩肉・もも肉を使用しています。',method:'すきやき用に食べやすい厚さでスライスしています。',story:'かつて岐阜県では、岐阜県産和牛を「岐阜牛」と称していましたが、昭和52年頃、吉田ハム（現：JA全農ミートフーズ株式会社）が地場産業の発展のために岐阜県産和牛を「飛騨牛」として銘柄化を推進。昭和59年、「飛騨牛」の商標登録を取り、普及販売を推進しました。',cooking:'・関東風すきやき：お好みの割り下で、肉と野菜を煮込む\n・関西風すきやき：先に肉を焼き、醬油、砂糖、酒等で味付けし、野菜を加える',media:'JA全農は第9回和牛甲子園を開催し、飛騨牛の魅力を全国へ示す結果となりました。（令和8年1月15日、16日）',notes:''},
+      {id:22,name:'鹿児島県産黒毛和牛＆国産和牛ホルモン焼肉3種食べ比べセット',catchCopy:'大切な方への贈り物やご家庭でこだわりの焼肉を',priceBase:9000,priceTax:9720,category:'お肉',maker:'(株)ナンチク',createdAt:'',features:['鹿児島県産黒毛和牛は肉の旨味が強いことが特長です。','ウデは前脚上部の部位です。味は濃厚ですが よく動かす部位なので、余計な脂が少なく適度な柔らかさが特長です。','赤身肉に続きあっさりと濃厚さが程よくブレンドされています。','バラはあばら骨周辺部位を指します。濃厚な旨みと脂身の多さが特長です。','ホルモンは焼肉・BBQにピッタリです。'],recommend:'大切な方への贈り物として。家族や仲間でお肉の素材の旨味を味わう',ingredient:'生産者が愛情いっぱいで育てました。食した人の美味しい笑顔を楽しみに、風味と味わいを出すために特別に配合された飼料を食べて育った牛です。',method:'自社工場から一貫した管理体制により高品質を維持しています。',story:'鹿児島県産黒毛和牛の美味しさを皆さんに知ってもらいたいと思い、味・品質が落ちずに少しでも安価で提供できるよう包装簡略化(一般的なトレーの使用・タンボール発送）で提案させていただきました。',cooking:'火を通しすぎると硬くなってしまうため、強めの火加減で片面を焼き、うっすら肉汁が出てきたら返し、返した面に少し焼き色がついたら再度返して軽く炙ったら焼き上がりです。ホルモンは中火～弱火でじっくりとまずは皮側をきつね色になったら裏返し、脂側は透明になるまで軽く炙ったら焼き上がりです。',media:'',notes:'※ホルモンはしっかりと火を通してからお召し上がりください。'},
+      {id:23,name:'菅乃屋　馬刺し5種スライスセット',catchCopy:'馬刺しの本場熊本の味をご家庭にお届けいたします。',priceBase:5800,priceTax:6264,category:'お肉',maker:'千興ファーム',createdAt:'',features:['馬刺しの本場熊本の味を簡単にご家庭でご堪能いただけます。','個食タイプで食べたい量をお楽しみいただけます。','最初から切れているので、包丁まな板いらず','お急ぎの場合は水につけて約7分で解凍！','送り先にも喜ばれる簡単レシピ','馬刺し部位5種の類食べ比べ','良質なたんぱく質の補給に'],recommend:'馬刺しを食べたいだけど、解凍や切るのがめんどくさい。贈る先で馬刺しが切れるかのか心配。好きな量だけ食べたい。色々な部位が食べたい等、馬刺しをご家庭でお気軽に食べたい方にオススメ',ingredient:'カナダやフランスの契約牧場で生まれ、生きたまま空輸して自然の宝庫熊本で阿蘇の伏流水を飲み、独自の穀物飼料を食べて育ちました。本場熊本の馬肉専門店「菅乃屋」でも取扱っているおいしい馬肉をお届けいたします。',method:'世界的衛生基準SQFを取得。と畜場からの一体型生産は日本唯一で新鮮な状態でパック迄おこないますので、臭み等なく熊本の馬刺しを代表する製法と本来の旨味をお届けしております。',story:'熊本といえば「馬刺し」。全国で美味しさの認知は広がっていますが、ブロックの解凍方法や切り方で味が変わります。馬刺しを食べたいけど解凍や切るのが面倒というお声をいただきお手軽に皆さんに提供できないか？が出発点でした。',cooking:'スライスは冷蔵庫解凍で1時間、お急ぎの場合は流水約5分で解凍。パックから取り出しお皿に盛って添付のタレでお召し上がりください。刺身のツマは薄く切ったタマネギのスライスがよく合います。お好みで薬味はショウガやニンニクをお使いください。',media:'旅サラダやせっかくグルメ、その他国内外のメディアや雑誌・youtube等で「菅乃屋」の馬刺しが紹介されています。',notes:''},
+      {id:24,name:'菅乃屋　馬刺しブロック・ユッケセット',catchCopy:'お得！馬刺しの本場熊本の味をご家庭にお届けいたします。',priceBase:7400,priceTax:7992,category:'お肉',maker:'千興ファーム',createdAt:'',features:['馬刺しの本場熊本の味を簡単にご家庭でご堪能いただけます。','馬刺しのブロックタイプと馬肉を細切りにした本格ユッケの2種','馬刺しブロックはお好みでスライスしていただくタイプ','ユッケは解凍して添付のタレを混ぜるだけでお召し上がりいただけます。','お得感満載のセット','個包装タイプですので食べたい分だけ解凍','良質なたんぱく質の補給に'],recommend:'お得に本場熊本の馬刺しを食べたい。ご家庭での食卓でおいしい馬刺しを食べたい。健康管理を気にするご家庭に！',ingredient:'カナダやフランスの契約牧場で生まれ、生きたまま空輸して自然の宝庫熊本で阿蘇の伏流水を飲み、独自の穀物飼料を食べて育ちました。本場熊本の馬肉専門店「菅乃屋」でも取扱っているおいしい馬肉をお届けいたします。',method:'世界的衛生基準SQFを取得。と畜場からの一体型生産は日本唯一で新鮮な状態でパック迄おこないますので、臭み等なく熊本の馬刺しを代表する製法と本来の旨味をお届けしております。',story:'熊本といえば「馬刺し」。全国で美味しさの認知は広がっています。「馬刺しブロック」は赤身で旨味を充分に含んだあっさりとした味。「ユッケ」は臭みがない味で柔らかくお酒のおつまみや、丼、お年寄りにも楽しんでいただけるように開発いたしました。',cooking:'ブロックは冷蔵庫解凍で3時間、お急ぎの場合は流水約15分で解凍。冷凍の芯が残った状態でパックから取り出し薄くスライスしてお皿に盛って添付のタレでお召し上がりください。',media:'旅サラダやせっかくグルメ、その他国内外のメディアや雑誌・youtube等で「菅乃屋」の馬刺しが紹介されています。',notes:''},
+      {id:25,name:'鹿児島黒豚荒挽きウインナー',catchCopy:'鹿児島が誇る黒豚でちょっとリッチな食事に',priceBase:3650,priceTax:3942,category:'お肉',maker:'(株)ナンチク',createdAt:'',features:['黒豚肉：鹿児島の豊かな自然の中で品質の高い「黒豚」の生産。「柔らかく、歯切れがよく、旨味がある」と人気が高いです。','黒豚脂：融点が高いため、脂がベトつくことがなく、さっぱりした脂。','調味料：ラム酒を加えて味付けすることで鼻にスーッと抜けるような風味。','天然羊腸：腸の中に限界まで肉を詰めており、荒挽きならではのパリッとした食感。','熟練の技を生かして、食感を決める「結着」には、その日の状況など「見極め」て製造しています。','アレルギーが「豚肉」のみ。'],recommend:'いつもの買い物で、安全でおいしい商品を買いたい方へ',ingredient:'原料には「かごしま黒豚」を使用。時間をかけて肥育（一般的な豚の1.2倍から1.5倍ほどの肥育期間。概ね230日～270日。）しており、希少価値が高いです。また、うまみを引き出すアミノ酸の含有量が多く、おいしく特有の旨味があります。甘しょ（サツマイモ）を10%～20%添加した飼料を60日以上与えることで、脂肪の融ける温度が高くなり、さっぱりとした脂に。',method:'熟練の技を生かして、食感を決める「結着」には、その日の状況に合う温度など「見極め」て製造しています。また、天然羊腸を使用することで、より荒挽きならではの「パリッ」とした食感を生み出しています。',story:'鹿児島が誇る黒豚を使ってウインナーを作れないか？肉の配合比・肉挽きサイズ・調味自社配合など何回もの試作を経て、販売開始。',cooking:'そのまま食べてもおいしいですが、焼いたり茹でるのもおすすめです。焼き方：フライパンに油を引かずにウインナーを入れ、1/3が浸る程度の水を入れます。強火で転がしながら解凍・加熱します。水気がなくなってきたら、中火～弱火にして表面に焼き色がつくまで加熱したら完成です。',media:'',notes:'利用者の声：「肉っ！」というのが一口目を食べた時の感想で、「今まで食べてきたウインナーとは全く違う」というのが食べた時の感想です。'},
+      {id:26,name:'伊藤ハム　チャーシュー切り落とし',catchCopy:'豚バラ肉を使用したチャーシューの切り落としです。',priceBase:4100,priceTax:4428,category:'お肉',maker:'伊藤ハム',createdAt:'',features:['ラーメンや丼の具材、そのままおつまみとしてもおすすめです。','肉の食感と脂のとろけ感が感じられます','お得な業務用規格でたっぷり1kg入り','使い勝手のよい個パック（100g）になっております。','豚バラ肉を使用したチャーシューで、いろいろな食べ方でお楽しみいただけます。'],recommend:'専門店のような煮豚を、そのままおつまみに、いろいろなメニューにと、便利にたっぷり楽しみたい方に',ingredient:'バラ山なしの豚バラ肉柵どり使用',method:'味付けは、かつおぶしエキス、こんぶエキスを加えた旨みのある醤油だれで、しっとりやわらかな豚バラ肉のチャーシューです。',story:'お料理におつまみにと人気のチャーシューを、「お得なお取り寄せ」として一般小売されていない業務用規格品を、ボリュームたっぷりお手頃価格のギフト商品にいたしました',cooking:'冷蔵庫や流水で解凍いただいた後、おいしくお召し上がり頂けます。そのままでおつまみに、チャーハン、ラーメンの具材、焼豚丼としてなど、幅広くお楽しみいただけます',media:'',notes:''},
+      {id:27,name:'海鮮ちまき20個セット',catchCopy:'いか、えび、干しえび、枝豆が入った海鮮ちまき！',priceBase:4500,priceTax:4860,category:'お肉',maker:'米久株式会社',createdAt:'',features:['国産もち米を使用でたまらない旨さ！','食べやすい竹皮包みの本格派！','電子レンジで簡単調理！'],recommend:'お子様などのおやつや、小腹が空いた時の軽食・夜食などにぴったり！',ingredient:'国産もち米使用。',method:'鶏肉、しいたけ、たけのこなどをオリジナル調味料で煮込み、もち米に美味しさを染み込ませて蒸し上げました。一つ一つ手包みで丁寧に竹皮に包んでいます。',story:'米久創業者が当時、横浜中華街で1個300円以上のちまきを食べ「これを1個100円で売れないか」と思いつき、30年ほど前に中国に自社工場を作りお米としてではなく鶏肉を20%以上入れ、差額関税を考慮し製造販売し、お肉屋さんのちまきとして当時1個100円のバラ販売などで一世を風靡した。',cooking:'＜電子レンジの場合＞ 凍ったまま袋から取り出し、竹皮を取らずに、水をくぐらせたちまきを耐熱皿にのせ、ふんわりとラップをかけ、1個につき下記時間を目安に加熱してください。500W：1分40秒、600W：1分30秒 ＜蒸し器の場合＞ 凍ったまま袋から取り出し、蒸気の上がった蒸し器に入れ、3個につき強火で約10分加熱してください。',media:'',notes:''},
+      {id:28,name:'もちもち皮のにんにく丸餃子セット',catchCopy:'長きに渡り研究を重ねた「もちもち皮」と「2種のにんにく＆自家製スープ」を配合した餡が絶妙のバランスの一品！多彩な調理が可能な餃子です！',priceBase:4500,priceTax:4860,category:'お肉',maker:'日本ハム',createdAt:'',features:['約20年に渡り試作と改良を続けている特長の「もちもち皮」','自家製スープを配合したジューシーな餡','すりおろしにんにくと、フライドガーリックを使用したにんにくの旨み','焼いても茹でても良し！蒸しても揚げてもレンジ調理も良し！簡単調理','多彩な調理方法が記載されたリーフレット付き！'],recommend:'・本当に「もちもちした皮」の餃子を味わいたい方・にんにくが好きな方・お忙しい時やお子様だけでもお手軽調理（レンジも可）で美味しい餃子が楽みたい方',ingredient:'・タピオカ粉を使用し、製法を研究した結果、本当に「もちもちした皮」ができました。・すりおろしにんにくと、フライドガーリックを使用することにより、にんにくの旨みが際立ちます。',method:'・皮の製造工程では特別な機械を使用し、真空で皮のミキシングを行うことにより、特徴ある「もちもち皮」に仕上げています。・企業秘密の自家製スープは自工場で配合、炊き上げ、冷やし込みまで行っています。そのスープを餡に配合することでジューシーな餡ができあがります。',story:'地元の木曽岬町と連携して商品を開発しようと取り組み、自工場の強みとお客様の利便性、冷凍保存のしやすさ等を熟考して開発開始をしました。アレンジレシピも様々考えて工場で企画・開発・リーフレット等を考えた商品です。',cooking:'〈フライパン調理の場合（6個の場合）〉①加熱前のフライパンに大さじ1の油をひき、凍ったままの餃子の焼き目を上にして並べて、中火で約1分加熱してください。②加熱後、火を止めずに水を約50cc入れ、フタをし、沸騰したら弱火で約5分蒸し焼きにしてください。',media:'2025/1/19　日本テレビ「スクール革命」で　ぼる塾　田辺さんに絶賛していただきました。（試食Barアサクサの紹介）',notes:''},
+      {id:29,name:'高政　笹かまぼこ詰合せ',catchCopy:'高政の商品を一通りお試し頂ける詰合せです。',priceBase:3450,priceTax:3726,category:'海鮮',maker:'高政',createdAt:'',features:['良質な白身魚を使った「笹かまぼこ」です。','揚げかまぼこは厳選した良素材を使い、菜種油でカラッとふっくら仕上げています。','一口サイズのぷちあげはハート型やひし形とかわいい形なのでギフトにぴったりです。'],recommend:'色々な味を楽しみたい人にオススメな詰合せです。',ingredient:'すり身から自社で調達し製造するのは、元々すり身メーカーでだからです。それによりおのずと魚にもこだわりをもって仕入をしています。',method:'漁獲されてから8～10時間前後がすり身製造の勝負所。その絶妙なタイミングを逃さぬよう漁師さんと連絡を取り合い、漁場から市場、工場搬入までの連携がキーポイントです。',story:'元々すり身事業である我が社は、その製法を活かし、蒲鉾製造を始め約30年になります。',cooking:'そのままでも、温めていただいても、おいしく召し上がれます。',media:'',notes:''},
+      {id:30,name:'中村家　お手軽海宝漬',catchCopy:'豪華な海の幸をお手軽にお召し上がり頂けます',priceBase:4900,priceTax:5292,category:'海鮮',maker:'(有)中村家',createdAt:'',features:['食べきりサイズの海宝漬を詰め合わせにしました','1パックがご飯茶碗1杯分の海宝漬です','個包装になっているので、必要な分だけを解凍できます','めかぶ醤油漬にサーモントラウト、いくらをトッピングしました','めかぶ醤油漬にほたて、いくらをトッピングしました','温かなご飯にかけて海鮮丼としてお召し上がりください','お酒の肴にもピッタリな海鮮漬けです。'],recommend:'少人数のご家庭',ingredient:'香りと食感の良いめかぶ醤油漬に濃厚ないくら醤油漬、そこに絶妙な火加減で蒸し焼きにした「サーモントラウト」、風味の良い「ほたて小柱」をそれぞれ合わせました。',method:'ほとんどの工程を手作業で盛り付けを行い美味しいだけではなく、見た目でも美味しく感じられるよう丁寧な作業を心がけております。',story:'「解凍してしまうと、全て食べきらなくてはいけない」「少人数の家庭では食べ切れない」というお客様の要望にお応えして、ご飯茶碗一杯分の食べきりサイズの海宝漬を製作しました。',cooking:'冷蔵庫内で解凍してお召し上がり下さい。温かなご飯にかけて豪華な海鮮丼としてどうぞ。',media:'',notes:''},
+      {id:31,name:'田村長　さば缶詰',catchCopy:'江戸時代から続く老舗の鯖缶です。',priceBase:6300,priceTax:6804,category:'海鮮',maker:'(株)田村長',createdAt:'',features:['鯖のアクを極力取り除いてあるので、後味が良い。','身が缶いっぱいにぎっしり詰まっている。','脂ののった鯖と醤油の味のバランスが良い。'],recommend:'ごはんのおかず。酒の肴。調理時間のない方。',ingredient:'脂ののったノルウェー産鯖を使用。',method:'魚の臭みが出ないよう入念な水洗いをしています。缶いっぱいに詰めるため手作業で詰めています。アクと魚の臭みを取るため、一度蒸してから調味液で味付けしています。',story:'かつて、若狭湾では鯖が大量に水揚げされたとき、缶詰にしたのが原点です。',cooking:'そのままはもちろん、野菜と一緒に煮付けてもおいしいです。また、身をほぐして鯖を煎って水分を飛ばし（お好みで生姜を加えても）おにぎりやちらし寿司に混ぜてもおいしいです。',media:'',notes:''},
+      {id:32,name:'魚夢伝　ぶり照焼きと鰆の西京漬け詰合せ',catchCopy:'北陸沖で漁獲されたぶり照焼きと鰆西京味噌漬けの詰合せ。どちらもご飯が進む味わい。',priceBase:4400,priceTax:4752,category:'海鮮',maker:'株式会社来島',createdAt:'',features:['北陸沖で漁獲されたぶり照焼きと鰆西京味噌漬けの詰合せ','近年豊漁の天然ぶりは本みりんや醤油でご飯がすすむ甘辛の照り焼きダレで仕上げました。','鰆は京の老舗・西京味噌の粒味噌、高名な石野味噌などを独自配合で合わせています。','どちらも化学調味料や着色料、保存料など使用せず素材の味を活かしています。','召し上がる分だけ解凍してフライパンやグリルで焼くだけの簡単調理。','ご家庭の長ネギやれんこんを一緒に焼いたり、青菜のお浸しなどをお好みで添えてどうぞ。','どちらもご飯が進む味わいで、家族が喜ぶ魚のおかずです。'],recommend:'ぶりや鰆に含まれるEPA・DHAと、ビタミンがコレステロール値を下げ、動脈硬化を予防する効果から、生活習慣病予防を期待できる食事として。簡単調理はシニア世帯にも。',ingredient:'1990年代以降の海洋環境の変化（高水温）が関与していることが指摘され、近年豊漁が続く北陸沖のぶりを使用。同じく北陸沖の鰆と合わせました。',method:'本みりんや醤油、砂糖、清酒などで調合した自家製の照り焼きダレはご飯を誘う素朴な甘辛味。西京味噌漬の漬床はそれぞれ、「京都」の老舗の西京味噌、石野味噌など吟味したものを独自配合で合わせております。',story:'海洋環境の変化から豊漁傾向にあるぶりは栄養価も高く貴重な水産資源。漬け魚に最適な柔らかな身質が特徴の鰆も北陸沖産のものを取り寄せて使用しています。自然災害が続く北陸沖の幸食べて応援したいギフトです。',cooking:'照焼きは冷蔵庫内で解凍後、グリルまたはフライパンで焼いてお召し上がりください。西京味噌漬けは解凍後、味噌を軽く落として（切身は水洗いせずに）、クッキングシートを敷いたフライパンで焼いてください。',media:'[魚夢伝]とは、世界的な魚食ブームとはうらはらに魚離れが進む日本において再び魚の美味しさ、効用を伝えたいという想いから名づけられました。',notes:''},
+      {id:33,name:'三重県産真鯛（養殖）カマ肉一夜干し 800g',catchCopy:'希少なカマ肉をたっぷり800g！',priceBase:2950,priceTax:3186,category:'海鮮',maker:'三重県漁業協同組合連合会',createdAt:'',features:['市場にほとんど流通しない希少な「カマ肉」。','脂がのってとっても美味。鯛の本当の旨みを堪能できます。','おかずの一品として、お酒のお供としておすすめです。'],recommend:'鯛の希少部位、本当に「旨い」部分を味わいたい方。',ingredient:'三重県産の真鯛（養殖）を使用しております。',method:'鯛のカマ部分を一つ一つ丁寧に処理し、一夜干しにしました。',story:'脂のりがよく、旨みの強いカマ肉ですが、加工に手間がかかるため、廃棄されることが多く市場にあまり流通しません。鯛の本当に美味しい部分をお届けしたい、フードロスもなくしていけないか、と考え今回の商品が考案されました。',cooking:'解凍後、お好みでグリルやフライパンで焼いてお召し上がりください。',media:'特になし',notes:'鯛のひれや骨が付いていますので、お召し上がりの際には十分ご注意ください。'},
+      {id:34,name:'明神水産　藁焼き鰹塩たたきセット',catchCopy:'特大鰹を藁焼きの塩たたきとタレたたきの2種類の食べ方で。',priceBase:3950,priceTax:4266,category:'海鮮',maker:'明神水産株式会社',createdAt:'',features:['一本釣りで漁獲した船上凍結品を使用しています。','南方海域で漁獲した1匹が7Kg以上の特大鰹を使用しています。','特大鰹を食べきりやすい1袋が1人前ほどの大きさにカットしています。','特大鰹は身質も良く、弾力のある食感を楽しめます。','たくさんの藁を使用して藁のみで香ばしく焼き上げています。','黒潮町産の天日塩で食べる塩たたきとゆずポン酢のタレで食べる2種類の食べ比べができます。'],recommend:'1節では大きくて食べきれない方、藁焼きの香ばしさをより楽しみたい方、晩御飯やお酒のおつまみに1品として食べたい方にオススメです。',ingredient:'一本釣りで漁獲後、船内ですぐに凍結した1匹が7kg以上の特大鰹を藁焼きたたきを使用しています。一本釣りの原料は、巻き網の鰹と比べ、魚体の痛みが少なく、品質にばらつきがありません。',method:'一般的には炭焼き、ガス焼きが多いですが、高知は鰹のたたきは藁で焼くことが昔からの製法となっています。藁焼きする際に使う藁は国産の稲藁を使用してます。藁はストロー状となっており、火をつけると大きく炎を上げて燃え上がります。それにより、鰹の表面のみを一気に焼き上げ、香ばしい風味をつけることができます。',story:'明神水産は元々漁業から始まった会社です。創業者は一本釣り漁船の漁師であり、一本釣りの鰹の味を全国の皆様にも食べていただきたいという思いから、鰹のたたきの製造を手掛けることになりました。',cooking:'真空パックのまま流水で解凍をします（5～10分）。中心に固さが残るくらいまで解凍した状態で切っていただくと綺麗にきることができます。お召し上がりの際はタマネギ、ネギ、ニンニク等の薬味をお好みで使用し、添付のタレをかけるとタレたたきとしてお召し上がりいただけます。添付の天日塩をかけると、素材の味を引き立てる塩たたきとしてお召し上がりいただけます。',media:'TBS「坂上・指原のつぶれない店」・「バナナマンのせっかくグルメ」・「ふるさとの夢(黒潮町)」',notes:''},
+      {id:35,name:'魚夢伝　宇和島鯛めし・お刺身ぶりめしセット',catchCopy:'愛媛の郷土料理を瀬戸内海の天然真鯛とぶりで。',priceBase:3950,priceTax:4266,category:'海鮮',maker:'有限会社来島',createdAt:'',features:['農林水産省の「郷土料理百選」に選ばれた愛媛の郷土料理、宇和島鯛めし','観光客にも人気の郷土料理、2種類の鯛めしのうち、宇和島鯛めしを使用','鯵やぶりを使用したものは同じく日振島の漁師飯として親しまれています。','漁場が近く鮮度の良い瀬戸内海の天然真鯛とぶりと愛媛県産アカモクを使用','ポリフェノールやフコイダン、フコキサンチン、各種ミネラル、食物繊維が豊富','別添特製たれ付なので、ご飯にかけるだけで豪華な海鮮どんぶりに'],recommend:'海産物がお好きな方に。健康に良い機能性の高いアカモクを含み、手軽に召し上がれるから忙しい方、シニアの方に。ご飯がすすむ満足メニューは男性にも。メディアにも取り上げられる豪華版卵かけごはんは女性にも人気。',ingredient:'漁場が近く鮮度の良い瀬戸内海の天然真鯛と天然ぶりを厳選して使用しています。',method:'高鮮度のままに下処理してお刺身に加工、製品まで仕上げています。また食感が異なる愛媛県産のアカモクを使用することで食べ応えもアップしています。',story:'愛媛の郷土料理鯛めしには炊き込み鯛めしとお刺身鯛めし（宇和島鯛めし）の2種類があることも話題となっています。宇和島鯛めし、お刺身ぶりめしは豪華版卵かけごはんとしてどなたにも愛される味わいです。',cooking:'①真鯛（ぶり）具材の袋のまま、約5分間流水をかけて解凍します。②器にたれと解凍した真鯛（ぶり）具材を入れます。③②にご家庭で用意した生卵を割り入れて混ぜ合わせてください。④別の器に盛った温かいご飯に③をたれごとのせてお召し上がりください。',media:'',notes:'[魚夢伝]とは、世界的な魚食ブームとはうらはらに魚離れが進む日本において再び魚の美味しさ、効用を伝えたいという想いから名づけられました。'},
+      {id:36,name:'魚夢伝　灘の粕・西京味噌漬詰合せ',catchCopy:'灘の吟醸酒粕使用粕漬と京の老舗味噌使用の西京味噌漬を食べ比べ',priceBase:5000,priceTax:5400,category:'海鮮',maker:'有限会社来島',createdAt:'',features:['灘の酒造で造られた吟醸酒の酒粕をふんだんに使用した米の旨みが際立つ粕漬','京の老舗・西京味噌の粒味噌、高名な石野味噌などを独自配合で合わせた西京味噌漬','それぞれの漬床で厳選した魚をじっくりと漬け込み、香り高く仕上げています。','1切づつ個包装し、フローズンでお届けしますのでお日持ちも長い','召し上がるぶんだけ都度解凍、調理できますので大変便利です','銀だら、からすがれいなど漬け魚にあう魚を取り合わせた8切入','フライパンでも焼けますので手軽にお召し上がりいただけます。'],recommend:'1切づつ個包装しておりますので、少人数のご家庭や忙しい方への贈り物に。また、フライパンでの簡単調理の方法をしおりと商品裏面に記載していますので、ヘルシー志向の若い方から調理に負担の大きいご年配の方へもおすすめできます。',ingredient:'世界的な魚食ブームと漁獲量減少による原料逼迫、円高等々原料確保が難しいなか、美味しいお魚を手軽に味わっていただくべく、銀だらなど、漬け魚に相性の良い厳選した魚を取り揃えました。',method:'粕漬・西京味噌漬の漬床はそれぞれ、酒処で有名な「灘」の吟醸酒粕、「京都」の老舗の西京味噌、石野味噌など吟味したものを独自配合で合わせております。厳選した魚を丁寧に下処理し、たっぷりの漬床でじっくり時間をかけて漬けています。',story:'百貨店進物で培われた経験と海辺の町である恵まれた環境を活かし、本物の味わいをお届けいたします。本品は関東・関西の嗜好違いなどを踏まえ、それぞれに楽しんでいただける商品に仕上げております。',cooking:'解凍後、味噌を軽く落として（切身は水洗いせずに）、クッキングシートを敷いたフライパンで焼きます。中弱火で約3～4分焼いた後、裏返し弱火で約2～3分焼きます。グリルで焼く場合には、よく揉んだアルミホイルを広げて切身の下に敷いて片面を弱火で4～5分焼き、皮と身に薄く焦げ目がつけば、裏返し、もう片面を3～4分ほど焼いてください。',media:'',notes:'[魚夢伝]とは、世界的な魚食ブームとはうらはらに魚離れが進む日本において再び魚の美味しさ、効用を伝えたいという想いから名づけられました。'},
+      {id:37,name:'魚夢伝　国産天然魚使用　胡麻鯛・胡麻ぶりセット',catchCopy:'福岡で好まれる、新鮮なお刺身を甘めの醤油とたっぷりのすりごまで和えた郷土料理',priceBase:4600,priceTax:4968,category:'海鮮',maker:'株式会社来島',createdAt:'',features:['九州、特に博多周辺で親しまれている郷土料理、胡麻鯛・胡麻ぶり','新鮮な真鯛やぶりの刺身を、甘めの醤油だれとたっぷりの香ばしいすりごまで和えています。','国産真鯛と国産ぶりを使用し、ワンフローズン製法で高鮮度のうちに急速凍結。','1食ずつ個包装していますので、解凍するだけで手軽にお召し上がりいただけます。','そのままお酒の肴に、またご飯のお供としてどんぶりやお茶漬けにも。','濃厚なごまの風味を引き立てる大葉、ミョウガ、刻み葱、すりおろし生姜を添えて。','胡麻鯛茶漬けには、薬味や刻み海苔、三つ葉などをたっぷり乗せて。'],recommend:'ヘルシーな食事をおすすめしたい方に。海鮮どんぶりとしても楽しめるので魚好きの方に。お酒好きな方にも。',ingredient:'刺身に適した高鮮度の国産真鯛と国産ぶりの鮮魚を買い付けしています。',method:'自家製の醤油だれにたっぷりの香ばしいすりごまを加え、濃厚な味わいの漬けだれに仕上げました。獲れたての鮮魚から下処理し、ワンフローズン製法で高鮮度のうちに急速凍結しています。',story:'九州、特に博多周辺で親しまれている郷土料理の胡麻鯛・胡麻ぶりを手軽にお召し上がりいただけるセットです。アツアツご飯にかけてどんぶりに。煎茶やほうじ茶をかけてお茶漬けに。大葉の千切りなどとあわせて、おつまみに。',cooking:'冷蔵庫内もしくは流水で解凍後、そのままもしくはご飯にかけてお召し上がりください。[どんぶりのお召し上がり方]①胡麻鯛（胡麻ぶり）は袋のまま、約5分間、流水をかけて解凍してください。②茶碗にアツアツの温かいごはんをよそい①をのせてお召し上がりください。',media:'',notes:'[魚夢伝]とは、世界的な魚食ブームとはうらはらに魚離れが進む日本において再び魚の美味しさ、効用を伝えたいという想いから名づけられました。'},
+      {id:38,name:'魚夢伝　銀鮭西京漬お得用',catchCopy:'脂のりが良い銀鮭を西京味噌で香り高く。人気の味わいをお得に。',priceBase:3950,priceTax:4266,category:'海鮮',maker:'株式会社来島',createdAt:'',features:['脂のりが良い銀鮭を香り高い西京味噌で漬込みました。','形の整っていない不揃いな切り落とし部位を有効活用し、お手頃な価格にしています。','京の老舗・西京味噌の粒味噌、高名な石野味噌などを独自配合で合わせています。','魚夢伝の西京漬の中でも、人気の銀鮭で仕上げました。','2切づつ個包装し、フローズンでお届けします。','都度解凍、調理できますので大変便利です。','フライパンでも焼けますので手軽にお召し上がりいただけます。'],recommend:'2切づつ個包装しておりますので、少人数のご家庭や忙しい方への贈り物に。フライパンでも手軽に焼けますのでヘルシー志向の若い方から調理に負担の大きいご年配の方へもおすすめできます。',ingredient:'魚夢伝の西京漬の中でも、人気の銀鮭の、形の整っていない不揃いな切り落とし部位を有効活用し、お手頃な価格にしています。西京味噌漬の漬床は、天明元年創業の「石野味噌」で二百三十余年、九代に亘る伝承の技でつくり続けている特醸白味噌と、同じく京都で創業約200年の老舗「西京味噌」の粒白味噌など吟味したものを独自配合で合わせております。',method:'厳選した魚を丁寧に下処理し、たっぷりの漬床でじっくり時間をかけて漬け込みました。',story:'百貨店進物で培われた経験と海辺の町である恵まれた環境を活かし、本物の味わいをお届けいたします。長くご愛顧いただいている魚夢伝西京漬の味わいを、お得なセットに仕上げました。',cooking:'解凍後、味噌を軽く落として（切身は水洗いせずに）、クッキングシートを敷いたフライパンで焼きます。中弱火で約3分焼いた後、裏返し弱火で約2～3分焼きます。グリルで焼く場合には、よく揉んだアルミホイルを広げて切身の下に敷いて片面を弱火で4分焼き、皮と身に薄く焦げ目がつけば、裏返し、もう片面を3～4分ほど焼いてください。',media:'',notes:'[魚夢伝]とは、世界的な魚食ブームとはうらはらに魚離れが進む日本において再び魚の美味しさ、効用を伝えたいという想いから名づけられました。'},
+      {id:39,name:'明神水産　漁師のかつお・まぐろ漬丼セット',catchCopy:'鰹と鮪の漬け丼で、解凍してご飯にのせるだけの簡単調理でお召し上がりいただけます。',priceBase:4400,priceTax:4752,category:'海鮮',maker:'明神水産株式会社',createdAt:'',features:['一本釣りで漁獲した船上凍結の鰹と太平洋で漁獲した国産のキハダ鮪を使用','明神水産で特に人気のある丼シリーズを詰め合わせにしました','漁師が船の上で食べる漁師飯を再現しました。','特製の甘めのタレに漬け込んでおり、解凍してご飯にのせるだけ','1パックが1人前なので、食べ切りやすく便利です。','解凍時間は約5分と短く、調理方法もとても簡単です。','甘めのタレに漬け込んでおり、お子様でもお召し上がりいただけます。'],recommend:'手軽に本格的な味をお召し上がりいただきたい方にオススメです。',ingredient:'一本釣りで漁獲した後、船上で凍結した鰹を使用しており、鮮度は抜群です。鮪は太平洋で漁獲した国産のキハダ鮪を使用しています。一本釣りの鰹は巻き網の鰹と比べ、魚体の痛みが少なく、品質にばらつきがありません。',method:'鰹とキハダ鮪を食べやすい大きさにカットしてスライスしています。また、漬けタレは明神水産オリジナルの特製タレで、ご飯がすすむ絶妙な味付けとなっております。',story:'鰹の漬け丼は鰹の一本釣り漁師が船の上で食べている漁師めしです。ご家庭で、漁師が船上で食べているような美味しい丼を食べてほしいという思いから商品化しました。',cooking:'真空パックのまま流水で約5分解凍をします。温かいご飯の上にのせてお召し上がりください。お好みで大葉・ねぎ・きざみのり・わさびなどの薬味をのせると更に美味しくお召し上がりいただけます。',media:'TBS「坂上・指原のつぶれない店」・「バナナマンのせっかくグルメ」・「ふるさとの夢(黒潮町)」',notes:''},
+      {id:40,name:'生ずわいがにハーフポーション　焼きがに用',catchCopy:'上品な甘みと繊細な身、カナダ産の生ずわいがにを「焼きガニ」で。',priceBase:5900,priceTax:6372,category:'海鮮',maker:'(株)キョクイチ',createdAt:'',features:['カナダ産の生ずわいがにを使用した棒肉ポーション。調理しやすいサイズ。','ギフトの棒肉ポーションを製造する際に持ち手となる「ラッキョ」の部分が折れてしまった商品をお得にご提供します。','バーベキュー等で焼きがにを楽しむには最高の商品。かにのプロも愛用しています。'],recommend:'ずわいがにをお得に楽しみたい方。ホームパーティ・バーベキューにもおすすめです！',ingredient:'カナダ産のずわいがにを使用。ずわいがに本来の甘みと繊細な身が特長です。',method:'カナダ産の原料を使用。水揚後すぐに加工し急速凍結された原料の殻を丁寧に取り、むき身にしています。',story:'ギフトの棒肉ポーションを製造する際に持ち手となる「ラッキョ」の部分が折れてしまった商品を箱詰めしてお届け。',cooking:'流水でグレーズを軽く洗い流した後、冷蔵庫で解凍してお召し上がりください。解凍後そのままでもお召し上がりいただけます。加熱する場合は半解凍から加熱すると美味しく調理できます。',media:'',notes:''},
+      {id:41,name:'天然本まぐろ入り　まぐろのたたき',catchCopy:'目利きが選んだ3種の天然まぐろ（きはだまぐろ、本まぐろ、めばちまぐろ）を使用したまぐろのたたき。',priceBase:5650,priceTax:6102,category:'海鮮',maker:'(株)キョクイチ',createdAt:'',features:['天然のまぐろを3種（きはだまぐろ、本まぐろ、めばちまぐろ）ブレンドしたマグロ職人渾身の「まぐろのたたき」。','日本有数のまぐろの拠点である静岡県清水で長年培った目利きの技術','粗挽きに仕立てておりますのでまぐろの食感もお楽しみいただけます。','天然の本まぐろを15%（使用するまぐろの中の割合）使用し、味わいを引き立てています。'],recommend:'まぐろをお得に楽しみたい方。',ingredient:'天然のまぐろを3種（きはだまぐろ、本まぐろ、めばちまぐろ）ブレンドしたマグロ職人渾身の「まぐろのたたき」。',method:'粗挽きに仕立てておりますのでまぐろの食感も存分にお楽しみいただけます。',story:'日本有数のまぐろの拠点である静岡県清水で長年ねぎとろの加工に携わってきたまぐろのプロに旨くて安いまぐろを食べさせてほしいとお願いし、仕立てていただきました。',cooking:'解凍後そのままでもおかずに。手巻き寿司、まぐろ丼、ネギトロでも',media:'',notes:''},
+      {id:42,name:'北海道産　ほたて貝柱（刺身用）　小粒',catchCopy:'北海道産の刺身用ほたて貝柱。小粒ですが旨みがぎゅっと詰まっています。',priceBase:6400,priceTax:6912,category:'海鮮',maker:'(株)キョクイチ',createdAt:'',features:['北海道産の天然のほたて貝柱です。','サイズは小さいですが旨みがぎゅっと詰まっています。','手早く加工し急速凍結しました。刺身用の鮮度でお届けします。','小粒だから包丁使わずそのままお料理にも使えて便利。'],recommend:'ほたてをお得に楽しみたい方。',ingredient:'北海道産のほたて貝柱を使用しています。',method:'北海道産のほたて貝の殻をむき、手早く加工し急速凍結しました。貝柱のみを刺身用の鮮度でお届けします。',story:'年々サイズ組成が小型にずれ込んでおり、昨年よりもワンサイズ小さな5Sサイズが中心となりました。そのため例年では少量しか発生しない小型の7Sサイズが大量に発生しています。産地では小さいサイズを使わないため、ほたての漁獲量・流通量が少ない中にもかかわらず、このサイズだけお得な価格となっています。',cooking:'小粒だから包丁使わずそのままお料理にも使えて便利。お刺身だけではなく、炒め物やバターソテー等様々な料理にご使用ください。',media:'',notes:''},
+      {id:43,name:'北海道えりも沖産　おさしみおおずわいがに　1kg',catchCopy:'甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',priceBase:8800,priceTax:9504,category:'海鮮',maker:'(株)キョクイチ',createdAt:'2025/6/20',features:['北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用','海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。','水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。','網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。','小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。','「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。','そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'],recommend:'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',ingredient:'北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',method:'鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',story:'3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',cooking:'必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',media:'',notes:''},
+      {id:44,name:'北海道えりも沖産　おさしみおおずわいがに　500g',catchCopy:'甘くジューシーなおおずわいがにの足を殻剥きし、お刺身用にしてお届け。',priceBase:6300,priceTax:6804,category:'海鮮',maker:'(株)キョクイチ',createdAt:'2025/6/20',features:['北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを活用','海の変化で4年前から大量発生。沖合で大きく育った個体が漁獲されるようになりました。','水揚後、しっかりと鮮度管理して工場に輸送。活きのよい原料を使用しています。','網走市の職人が手ばやく、一本一本丁寧に殻剥き加工してお届けします。','小型サイズですが、南蛮を持ち手にしてお刺身でお召し上がりいただけます。','「サイズのばらつき」「一部折れている商品が混じる」無選別の状態でのお届けです。','そのままお刺身としても、また、しゃぶしゃぶやてんぷらにしても大変美味にお召し上がりいただけます。'],recommend:'おおずわいがにを「お刺身」でおなかいっぱい楽しみたい方。',ingredient:'北海道太平洋（えりも・噴火湾）沖で漁獲されるおおずわいがにを使用。',method:'鮮度第一に、活きのよい原料を手早く加工しています。サイズにばらつきがありますが、それぞれの用途に合わせてお召し上がりいただけます。',story:'3年前より大量発生し、漁網を傷つける等の漁業被害が発生したことから駆除の対象とされ、小型の原料が投げ売りされていました。昨年から沖合で大きく育った個体が漁獲されるようになり、食せばわかる近海ならではの鮮度感を味わっていただきたく、お刺身用に製品開発しました。',cooking:'必要な分を取り出し、流水で急速解凍してください。折れている商品はそのままお刺身で、持ち手がある商品はしゃぶしゃぶ・天ぷらで、それぞれの用途に合わせてお楽しみいただけます。',media:'',notes:''},
+      {id:45,name:'アメリカ産　紅鮭のはらす（甘塩味）',catchCopy:'紅鮭の希少部位「はらす」を切り落としでお届け。',priceBase:4600,priceTax:4968,category:'海鮮',maker:'(株)キョクイチ',createdAt:'2026/2/7',features:['紅鮭の希少部位「はらす」を切り落としでお届け。','紅鮭本来の濃厚な味わいと脂の乗りが特長です。','フライパン調理が可能で簡単！','大きさ不分別、厚みの幅が不揃いな商品です。'],recommend:'鮭が大好きな老若男女。日々の食卓やお弁当に。',ingredient:'アメリカ産の天然紅鮭の腹身の部分、希少部位の「はらす」を切り落としにしてお届け。',method:'ふっくらとした身と極上の脂の乗り、濃厚な味わいがお楽しみいただけます。大きさ不分別、厚みの幅が不揃いな商品です。',story:'アメリカで紅鮭の製品（フィレ）を製造する際に生じた端材です。アメリカでは食べない部位ですが、脂の乗りと旨みが詰まった大変おいしい部位のため、加塩加工し製品化しました。',cooking:'冷蔵庫で解凍後、グリルやフライパンでカリッとふっくら焼き上げてください。フライパン調理が可能で簡単です。',media:'',notes:''},
+      {id:46,name:'青森サーモン・無選別サク（1kg）',catchCopy:'冷たく厳しい北の海で育まれた青森サーモンのお得なサクセット',priceBase:5700,priceTax:6156,category:'海鮮',maker:'(株)あおもり海山',createdAt:'',features:['青森県の豊かな自然に育まれた海上養殖されたトラウトサーモン','卵の孵化から、陸上養殖、海上養殖まで一貫して取り組んでいます。','2025年の生産量は約3,400トン。国内有数の規模を誇ります。','深浦町にあるHACCP認証工場で加工するので、安心の衛生状態。','バラ凍結でジッパー付き袋入りなので使い勝手がよいです。'],recommend:'国産の安心安全なサーモンを食べたい方にはおススメです。生食向けのトラウトサーモンを日本国内の安全な環境で養殖した逸品です。',ingredient:'青森サーモンは、青森県内の豊かな環境で孵化・陸上養殖され、その後は県内の海上の生簀で大きく育ち、水揚げされます。',method:'活締めとは、サーモンを水揚げする時に、動脈を切って血抜きをする作業のことです。この作業をすることで、鮮度を保つことができます。活締めした上に、急速凍結することで高鮮度を維持したまま食卓までお届けします。',story:'生育や製造の際に、身割れや打ち身などが原因で規格外となる製品が出来てしまいます。ただし、正規品と同様に高鮮度の状態ですので、見た目を気にしなければ美味しくいただけます。青森サーモンをしっかりと活用するとともに、正規品よりもお得なセットとしてお届けします。',cooking:'生食用ですので、解凍してお刺身やネギトロなどにしてお召し上がりください。サーモン本来の味をお楽しみいただけます。',media:'',notes:''},
+      {id:47,name:'島の真ほっけ開き干し（切り落とし）　1kg',catchCopy:'北海道礼文島産の旬の真ほっけの切り落としをおトクにお取り寄せ。',priceBase:4000,priceTax:4320,category:'海鮮',maker:'(株)キョクイチ',createdAt:'',features:['北海道日本海、礼文島沖で旬の夏に漁獲された脂がしっかりとのった真ほっけを使用。','産卵に向けて豊富な餌を食べ、丸々と太ったた「身の厚い」ほっけです。','冷風乾燥しふっくらソフトな干物に仕上げました。','干物に加工する際に製品化できなかった商品をお得に詰め合わせてお届けします。','大きさ不揃いですが、お弁当や朝食のおかずにぴったりの大きさです。'],recommend:'老若男女問わず、お魚好きな方にはぜひおすすめしたい、おいしくてボリュームもたっぷりの詰合せ',ingredient:'北海道日本海、礼文島沖で旬の夏に漁獲された脂がしっかりとのった真ほっけを使用。産卵に向けて豊富な餌を食べ、丸々と太ったた「身の厚い」ほっけです。',method:'冷風乾燥しふっくらソフトな干物に仕上げました。',story:'干物に加工する際に製品化できなかった商品をお得に詰め合わせてお届けします。加工する際に傷がついたり、身が割れてしまったり、血合いが強く出てしまった等で製品化できなかった商品をお得に詰め合わせてお届けします。',cooking:'真空袋の封を切って、キッチンペーパーを引いたお皿やバット等の上に並べ3～4時間かけ冷蔵庫でゆっくりと完全解凍してください。加熱用です。必ず加熱してお召し上がりください。コンロで焼く場合は焼く前にしっかりとコンロをあたためてから調理してください。焼き過ぎると身から水分が抜け、パサパサになります。火加減を調整しながら焼いてください。',media:'',notes:''},
+      {id:48,name:'太か！博多辛子めんたいこ',catchCopy:'腹の大きな（太か！）明太子を丁寧に漬け込みました！',priceBase:4250,priceTax:4590,category:'海鮮',maker:'株式会社弘商',createdAt:'2026/4/20',features:['粒立ちの良い大きな卵を使用','ゆず風味の秘伝のタレでじっくり168時間熟成','大きすぎて規格外になるものを切子に加工して使用することでお買い得','250g×2P入りで保存にも便利'],recommend:'とにかく明太子は粒々感にこだわりたい',ingredient:'アラスカ産の原卵を使用。通常のギフト品の約2倍のサイズ。原卵が大きいので一粒も大きく粒立ちは最高です。',method:'アラスカの海で漁獲したすけとうだらの卵を船上で腹だし・凍結し鮮度をキープ。2次調味では清酒とオリジナルで配合した唐辛子、そこに柚子を加えて168時間かけてじっくりと熟成させます。',story:'原料の卸事業をやっていく中で規格が大きすぎてギフトに使用しにくいサイズのものを商品化しております。各明太子メーカーに於いて価格は据え置きで内容量を減らすことで実質値上げを行っている実態があり大きいサイズの原卵では量目合わせが難しく使用量が減っている中で有効に活用したいと思い開発に取り組みました',cooking:'炊き立てあつあつの白米と一緒にお召し上がりください。パスタやお茶漬けにもよく合います。',media:'',notes:''},
+      {id:49,name:'国産博多辛子めんたいこ　あご出汁使用',catchCopy:'国産たら子を長崎県平戸・五島列島産のあごだしを使い仕上げた至極の辛子明太子',priceBase:3600,priceTax:3888,category:'海鮮',maker:'株式会社弘商',createdAt:'',features:['北海道産のすけとうだらの卵を使用。','あごだしの「あご」は、長崎県平戸・五島列島産を使用。','168時間かけて旨味を引き出す長時間二段熟成','辛子明太子に最も適した熟度の「真子」だけを厳選。','一腹100gUPの身入りの良い腹の大きな卵を厳選'],recommend:'素材の味・食感を楽しみたい方。量より質で食事を嗜む方',ingredient:'漁獲量がすくなく希少な北海道産のすけとうだらの卵のみを使用。漁獲後新鮮なまま腹出し、生のまま塩蔵（一次処理）をすることで魚卵本来の旨味、粒感を損なう事なく造り上げるのが特長です。',method:'機会による大量生産はおこなっておりません。一腹ずつ人の手に取り原卵の状態を確かめながら選別・漬け込みを行います。辛子たれに浸漬する「漬け込み」と吸いすぎた辛子たれを吐き出させ旨味成分をしっかりと作り出す「水切り」という工程を卵の状態に合わせて時間の調整を行います。168時間という時間のなかでたら子本来がもつ旨味と、あごだしが持つ風味を引き出します。',story:'九州地方で馴染みの深いあご（とびうお）出汁を使った辛子明太子に仕上げました。様々な料理に使うことができる「上品」で「スッキリ」とした「だし」を引き出すため、主原料である「あご」と「水」にこだわりました。「あご」は、特産ブランドである長崎県平戸・五島列島産を使用。北海道産の原卵、ひろしょうオリジナルでブレンドした唐辛子と清酒を合わせることで香りと旨みを引き出しています。',cooking:'炊き立てあつあつの白米と一緒にお召し上がりください。お酒のあてにも最適です。',media:'',notes:''},
+      {id:50,name:'萬坊　いかしゅうまい2箱セット',catchCopy:'ふんわりプリプリの食感がクセになる美味しさ',priceBase:4000,priceTax:4320,category:'海鮮',maker:'ヤマエ久野',createdAt:'',features:['ふんわりプリプリの食感といかの甘みがたまらない呼子名物のいかしゅうまい'],recommend:'老若男女',ingredient:'「いかしゅうまい」は、いかの上身だけを贅沢に使用し、甘みたっぷりの玉ねぎ、大切に育てられた鶏の卵、にがり成分をたっぷり含んだ海塩、香りゆたかでほのかな甘みが特徴のコーン油などを加えて丁寧に練りこみました。',method:'外側のふわふわとした皮を手作業でまぶしており、また加熱後に真空冷却器を使用して素早く冷却することで、出来立ての味をお届けしています。',story:'佐賀県唐津市呼子町の海に浮かぶ海中レストラン「萬坊」。このレストランの厨房で「いかしゅうまい」は誕生しました。いかは生のままでは水揚げしてから1日も持たない繊細な魚介。はじまりは季節や天候によってどうしても余ってしまうイカを海が育んだ命を無駄にはできない思いから誕生しました。',cooking:'レンジまたは蒸し器で蒸して、油でカラっと揚げてもおいしく召し上がれます。',media:'情報番組やバラエティ等さまざまなメディアで取り上げられています。',notes:''},
+      {id:51,name:'博多華味鳥監修　華味鳥ひとくち餃子セット',catchCopy:'九州産「華味鳥」と自慢の鶏がらスープでジューシーなひとくち餃子に。',priceBase:4150,priceTax:4482,category:'海鮮',maker:'トリゼンフーズ株式会社',createdAt:'',features:['九州産「華味鳥」100%使用','水たき料亭「博多華味鳥」と同様の製法で作った鶏がらスープ','ひとくちサイズで小さいので老若男女食べやすい！','通常の焼き餃子より調理時間が約3分と、短い時間で調理可能'],recommend:'鶏肉100%使用、ヘルシーに餃子を食べたい方。鶏がらスープを餡に練りこむ事で非常にジューシーにお楽しみいただけます。',ingredient:'九州産「華味鳥」を使用',method:'餃子業界では有名な八洋食品とコラボレーション',story:'博多名物のひとくち餃子を鶏肉屋のトリゼンフーズ流にアレンジ。九州産「華味鳥」と鶏がらスープを使用。餃子＝牛・豚がスタンダードであるが、鶏肉を使用することであっさりと楽しめます。一口サイズの小ぶりな仕様のため、パクパクと数を食べていただける仕様に。鶏肉＝物足りない　というイメージを払拭する為、鶏ガラスープを餡に練りこんでジューシーさを出しました。',cooking:'①熱したフライパンに油をひき、餃子をいれます ②10個の場合・・・水約80cc　25個の場合・・・水約120cc（火力の目安は中火）ふたをして3分～3分半。③水がなくなり、そこがきつね色になったら、出来上がりです。',media:'',notes:''},
+      {id:52,name:'井上商店　和ごころギフトセット',catchCopy:'井上商店自慢の商品を詰め合わせました。しそわかめをはじめ、夏みかんやふぐの商品を入れたおすすめギフトです。',priceBase:3450,priceTax:3726,category:'海鮮',maker:'(株)旭開発',createdAt:'',features:['しそわかめ80g⇒昭和55年発売のレギュラータイプ。贈り物にも最適。','夏みかんわかめ70g⇒「しそわかめ」で好評のソフトふりかけシリーズ','まぜご飯の素(ふぐめし)140g⇒炊き上がったご飯にさっとまぜるだけ','だし茶漬け(真ふぐ)200.3g⇒良質なかつお節・昆布を使い、上品なだし','おかゆ(ふぐスープ仕立)250g⇒ふぐダシで炊いた味わいおかゆ'],recommend:'老若男女幅広い層におおすすめです。',ingredient:'お客様の安心安全を第一に考えて選んだ原料を仕入れ、製造しております。看板商品のしそわかめは国産しそFD（フリーズドライ）を使用し、しその風味豊かな商品に仕上げております。',method:'看板商品のしそわかめは国産しそFD（フリーズドライ）を使用し、しその風味豊かな商品に仕上げております。',story:'1970年代、3代目・4代目社長が萩の食文化を伝えられるお土産を作ろうと立ち上がりました。萩市ではおなじみの春先になると軒先に吊るしてあるわかめ。古くから干したわかめを細かく刻んでご飯にまぶして食す風習があり愛されてきました。開発中いくつもの障壁があり、完成までに5年もの月日が費やされました。',cooking:'・しそわかめ⇒あたたかいご飯にふりかけてお召し上がりください。・まぜご飯の素（ふぐめし）⇒2合のお米を炊いて、まぜご飯の素を入れ混ぜ込みお召し上がりください。・だし茶漬け（真ふぐ）⇒茶漬けだし(スープ)を封を切らずにそのまま沸騰したお湯の中に入れ約1分間温めてください。',media:'・ZIPにてテレビ放送・秘密のケンミンショーにてテレビ放送・県内テレビCM「しそわかめ」',notes:''},
+      {id:53,name:'銀座フルーツ大福×東京花万どらバターサンド詰合せ',catchCopy:'果物専門店「銀座千疋屋」と花園万頭の新ブランド「東京花万」が、"進化系和菓子"の魅力をお届けするコラボレーション企画商品です。',priceBase:4300,priceTax:4644,category:'スイーツ',maker:'(株)パティスリー銀座千疋屋',createdAt:'',features:['銀座千疋屋が厳選した果物（いちご・白桃・ブルーベリー）と濃厚なクリームをもっちりとしたお餅で包み、それらが口の中で絶妙に調和します。','しっとりモチモチのどら焼き生地に、バタークリームと相性の良いフレーバーを掛け合わせた新感覚のどら焼きです。'],recommend:'お子様からご年配の方まで幅広くお喜びいただけます。',ingredient:'銀座フルーツ大福 いちご：国産いちごをまるごと1粒。ジューシーで甘さと酸味の調和がほどよく、クリームとの相性抜群。',method:'',story:'',cooking:'',media:'',notes:''},
+      {id:54,name:'榮太樓　あんみつ東京蜂蜜詰合せ',catchCopy:'榮太樓伝統の本格派のあんみつに東京蜂蜜を詰め合わせました。',priceBase:4700,priceTax:5076,category:'スイーツ',maker:'株式会社榮太樓總本鋪',createdAt:'',features:['4種類のフルーツと歯切れの良い寒天。','北海道産小豆を使用し丁寧に炊き上げて造ったこし餡。','沖縄県の黒糖を使用したまろやかでコクのある黒みつ。','程よい食感になるように炊き上げた赤豌豆（あかえんどう）。','東京都内の養蜂場で採蜜されたはちみつ。','夏の花々の蜜から作られた百花蜜。','さわやかな果実味を感じるはちみつ。'],recommend:'男女を問わず甘い物、和菓子がお好きなすべての方に。疲れた時、ホッとしたいとき、自分へのご褒美に。',ingredient:'寒天の最大の特長は外観と食感にあります。パシッと角の立った外観、噛んだ瞬間のプリッとした歯切れの良さ、いつまでも口の中に残らずホロホロと崩れる口どけのよさが特長です。はちみつは東京都内に咲く花々から集めた百花蜜です。あんこは、北海道産の小豆を使い豆から炊き上げました。濃厚で深い味わいが特長です。',method:'黒みつは、作業を一日で終らせるのでなく、一晩寝かせる事によって味に深みを演出しています。四季折々の花々から集められたはちみつのため、味、色、香りが採取した時期によって異なります。',story:'江戸の頃から日本橋界隈で和菓子屋を営んでいる榮太樓總本鋪と、銀座周辺で働く有志たちが集まり、ビルの屋上でみつばちを飼う活動をする銀座ミツバチプロジェクトが、東京都を盛り上げるためにコラボ商品を開発しました。',cooking:'冷やしたあんみつに東京はちみつをかけてお召し上がりください。ご家庭で簡単に本格派の味をお召し上がいただけます。',media:'',notes:''},
+      {id:55,name:'アトリエ・ド・フロマージュ　チーズスイーツセット',catchCopy:'信州のチーズ工房から自慢のチーズを使ったスイーツの詰合せ。',priceBase:3950,priceTax:4266,category:'スイーツ',maker:'アトリエ・ド・フロマージュ',createdAt:'2026/3/30',features:['自家製「生チーズ」を使った滑らかなチーズケーキ「フォンテンヌブロー」','厳選したチーズを使い、さっぱりレモン風味の「スティックチーズケーキ」','2種の異なるチーズスイーツの食べ比べセット'],recommend:'チーズ、チーズケーキが好きな幅広い世代の方。',ingredient:'「フォンテンヌブロー」に使用している「生チーズ」は長野県産の生乳を使い、長野県東御市（とうみし）のチーズ工房で製造しています。',method:'「フォンテンヌブロー」はチーズ、生クリーム、砂糖のみを使い、素材の良さをシンプルに生かした製法です。「スティックチーズケーキ」は重すぎないのに、しっかりとチーズ感を味わえる食味を目指した製法です。',story:'美味しいチーズをもっと手軽にお客様に広めたいという想いから2種のチーズケーキを開発しました。',cooking:'冷凍状態から冷蔵庫で5時間ほどかけてゆっくり解凍いただくのがおすすめです。',media:'',notes:''},
+      {id:56,name:'中島大祥堂　丹波蜜芋のチーズケーキ',catchCopy:'しっとり甘い丹波産のさつまいもを使用した蜜芋の層に、程よい酸味のチーズケーキを重ねた2層のケーキ。',priceBase:4150,priceTax:4482,category:'スイーツ',maker:'株式会社中島大祥堂',createdAt:'',features:['濃厚な「スイートポテト」と、ほどよい酸味の「チーズケーキ」が美しく調和。','丹波の肥沃な大地で育ち、蜜をたっぷりと蓄えた紅はるかを使用。','収穫後、熟成庫でゆっくりと寝かせることで、芋本来の甘みと旨みを引き出します。','時間をかけて「焼き芋」にすることで、より深いコクと風味を生み出します。','表面を高温で焼き上げることで、カラメルのような香ばしさをプラス。','蜜芋の濃厚な甘さを、チーズケーキの爽やかな酸味が引き立てます。','こだわりの製法により、大切な方への贈り物やお取り寄せスイーツとして最適。'],recommend:'王道のベイクドやレアとはひと味違う、和洋折衷の重厚なチーズケーキを楽しみたい方におすすめです。',ingredient:'・丹波産 紅はるか：主役となるさつまいもは、強い甘みが特長の紅はるかを採用。特に地元・丹波産の品質にこだわっています。・生クリームと卵のコク：スイートポテト層には、芋の風味を殺さない絶妙なバランスで生クリームと卵を加え、なめらかでリッチな口当たりを実現しています。',method:'・「熟成」と「焼き」の工程：芋をすぐに加工せず、熟成庫でゆっくり寝かせてから「焼き芋」にするという手間を惜しまない工程が、奥行きのある味の決め手です。・スイートポテトの「炊き上げ」：焼き芋に素材を加え、丁寧に炊き上げることで、なめらかさと濃厚さを両立させています。・高温焼き上げによる仕上げ：最後に高温で一気に焼き上げることで、表面に美しい焼き色と香ばしい風味をまとわせています。',story:'弊社が長年大切にしてきた「丹波の豊かな恵みを分かち合う」という精神から、このケーキは誕生しました。「丹波栗」で知られる同ブランドが、栗に並ぶ丹波の至宝である「さつまいも」の可能性を追求。単なるスイートポテトやチーズケーキではなく、自社の強みである「素材を活かす技術（熟成・焼き）」を注ぎ込むことで、和菓子の繊細さと洋菓子の華やかさを併せ持つ「丹波蜜芋のチーズケーキ」という唯一無二の逸品へと昇華させました。',cooking:'商品は冷凍でお届けしています。冷蔵庫で3～6時間解凍してからお召し上がりください。ケーキを綺麗にカットするコツ：お湯の入ったカップ等の容器を用意し、容器にナイフを入れ温めたあと、ナイフをよく拭いてからカットしてください。',media:'',notes:''},
+      {id:57,name:'柴田シェフ監修　焼き菓子ギフトセット',catchCopy:'柴田シェフ監修こだわりの焼菓（フィナンシェ／焼ドーナツ）セットです。',priceBase:3800,priceTax:4104,category:'スイーツ',maker:'メイホウ食品株式会社',createdAt:'',features:['名古屋を拠点に活躍中の世界的パティシエ。カフェ「シェ・シバ」監修。','フィナンシェ：食感にこだわり、噛み応えと歯切れのよい生地を実現。','フィナンシェ：芳醇な焦がしバターの香りをお楽しみいただけます。','焼ドーナツ：ザクザクシュガーをトッピングし、食感と見た目にアクセント。','焼ドーナツ：アーモンドとバターの風味、ほどよい塩味で飽きのこない味わい。'],recommend:'老若男女お楽しみいただけるフィナンシと焼ドーナツの詰合せです。特に柴田シェフの作るスイーツは女性人気が高く、女性へのプレゼントや記念日の贈り物、差し入れなどにオススメです。',ingredient:'フィナンシェ：国産小麦、ニュージーランド産のバターを使用。焼ドーナツ：北海道産甜菜糖使用のザクザクシュガーを使用。',method:'毎日の温度・湿度を考慮しながら、日々、焼成条件等を微調整して、丁寧に焼き上げています。',story:'グループ会社の一員である柴田シェフの力を借り、消費者に根強い人気があるフィナンシェ、ドーナツをもっと手軽に、たくさんの人に美味しく食べてもらいたいという想いから。',cooking:'温めると、より焼きたてに近い味わいをお楽しみいただけます。',media:'',notes:''},
+      {id:58,name:'いろは堂　おやき詰合せ',catchCopy:'こんがり、ふっくら、具だくさん。信州のふるさとの味',priceBase:4900,priceTax:5292,category:'スイーツ',maker:'有限会社いろは堂',createdAt:'',features:['生地に小麦粉とそば粉を使用し、独自の配合と発酵方法で寝かせて仕込みます。','蒸すおやきが主流な中、揚げてから焼くと言う独自の製法により外はカリっと、中はもちもち。','原材料加工から生地の仕込み、焼き上げまで自社で製造しています。','個別包装ですので、個食、中食志向のユーザーにも買いやすい商品です。','肉類は使用しておらず、野菜のみの具材のためヘルシーです。','豊富な種類で色々な味がお楽しみいただけます。'],recommend:'時短で食事をしたい方、野菜不足やヘルシー志向の方、信州の味わいを楽しみたい方',ingredient:'野沢菜は仕入業者の契約農家で収穫した野沢菜のみを使用し、葉と茎の割合を調整して具材にしています。その他の野菜は長野県を中心に新鮮な野菜を毎日仕入れ自社で加工しています。味付けに使用する味噌は地元味噌蔵の信州味噌で、弊社用に独自のブレンドをしたオリジナル味噌です。',method:'小麦粉とそば粉を配合した独自の生地を寝かせて発酵させて仕込みます。一度軽く揚げ、その後約250℃のオーブンで焼き上げる「揚げ焼き」と言う独自の製法をとっています。揚げてから焼くことで美味しさを閉じ込め、外はカリっと、中はもちもちの触感が生まれ冷めても固くなりません。',story:'いろは堂は大正14年、和菓子店として創業しその後、パンの製造にも注力しました。いろは堂のおやきの製法は菓子、パン職人であった先代が、パンの製法を基に、独自の研究を重ね開発しました。',cooking:'包装のまま電子レンジで温めてお召し上がりいただけます。温めた後にオーブントースターまたはフライパンで表面を軽く焼くとさらにおいしく召し上がれます。',media:'バナナマンせっかくグルメ、ザ・共通テン！、世界くらべてみたら、ヒルナンデスなど',notes:'ジャパンフードセレクション　グランプリ受賞（2024年5月）'},
+      {id:59,name:'大山乳業　白バラ生ロールケーキギフト',catchCopy:'白バラ牛乳を使用した【白バラ牛乳生ロールケーキ】と、白バラコーヒーを使用した【白バラコーヒー生ロールケーキ】の詰合せ。',priceBase:3950,priceTax:4266,category:'スイーツ',maker:'大山乳業農業協同組合',createdAt:'',features:['白バラ牛乳生ロールケーキ：白バラ牛乳を生地とクリームに使用','白バラコーヒー生ロールケーキ：白バラコーヒーをスポンジとホイップに使用','自家製生クリーム、国産小麦を使用。'],recommend:'スイーツが好きな方。ふんわり食感を味わいたい方',ingredient:'白バラ牛乳、白バラコーヒーを使用。',method:'白バラ牛乳を使用し、「ふんわり」「しっとり」とした食感の生地に仕上げました。また、たっぷりと空気を含ませたメレンゲを混ぜ合わせ1枚ずつ丁寧に生地を焼き上げることで、ミルクの優しい風味がふわっと香る美味しい生地が出来上がりました。',story:'鳥取県の生乳から作られる白バラ牛乳の魅力を伝える商品として、特製ミルクホイップを使ったスイーツ「白バラ牛乳生ロールケーキ」が誕生しました。そして、待望の第二弾として白バラファンからも愛される「白バラコーヒー」を使用した、「白バラコーヒー生ロールケーキ」も完成させました。',cooking:'ロールケーキは解凍してからお召し上がりください。解凍の目安は、外装フィルムのまま冷蔵庫で5時間です。お好きなサイズにカットしてお召し上がりください。果物をトッピングしても美味しく召し上がれます。',media:'地元鳥取県で開催された「令和7年度 食パラダイス鳥取県特産品コンクール」（菓子・パン部門）で最優秀賞を受賞しました。',notes:''},
+      {id:60,name:'宗家　源　吉兆庵　源　吉兆庵の夏菓撰',catchCopy:'果実の風味をとじ込めた口どけも爽やかな、夏の涼菓詰合せ',priceBase:4100,priceTax:4428,category:'スイーツ',maker:'(株)宗家源吉兆庵',createdAt:'',features:['マスカットの風味を凝縮した香り高い「マスカットぜりぃしゃーべっと」','きざんだ白桃をちらした瑞々しい「白桃ぜりぃしゃーべっと」。','マスカット・白桃の2種のぜりぃしゃーべっとは、冷やせばぜりぃ、凍らせればしゃーべっと。二通りの味わいをお楽しみいただけます。','濃厚な甘みを持つマンゴーの風味をとじ込めた「太陽の実」。','旬の果実3種のお味をご用意しました。'],recommend:'ぜりぃの食感は、のど越し良い食感に仕立てていますので、小さなお子様からお年を召された方でも非常に食べやすくお召し上がりいただけます。また、マスカット・白桃の2種の「ぜりぃしゃーべっと」は冷やしてゼリー、凍らせればシャーベットとしてお召し上がりいただけますので、お好みに応じて食べ方を変えてお楽しみいただけます。',ingredient:'',method:'独自製法により、マスカット・白桃の2種の「ぜりぃしゃーべっと」は、冷蔵庫で冷やしていただければゼリーとして、冷凍庫で凍らせていただければシャーベットとしてお召し上がりいただけます。また、「太陽の実」は、ぜりぃの食感がまるで本物の果実を食べたかのような食感を追及いたしました。',story:'',cooking:'ご自宅にて、冷蔵庫で冷やしていただければゼリーとして、冷凍庫で凍らせていただければシャーベットとしてお召し上がりいただけます。',media:'',notes:''},
+      {id:61,name:'ひととえ　凍らせて食べる　なめらかクリームのフルーツ大福',catchCopy:'ひんやり、もちっ、とろり。凍らせて食べる新感覚のフルーツ大福。',priceBase:3700,priceTax:3996,category:'スイーツ',maker:'株式会社中島大祥堂',createdAt:'',features:['独自のアイス品質技術を応用しており、家庭の冷凍庫で凍らせて食べられます。','本格的なフルーツ大福でありながら常温での持ち運びや配送が可能。','酸味のある「フルーツ果肉入りソース」、甘みのある「なめらかなクリーム」','求肥のような、弾力のあるもちもちとしたおもちの食感にこだわっています。','いちご、みかん、キウイというフルーツ大福で人気の高い味種を使用。','限定された情報でも「凍らせて食べる」「なめらかクリーム」「フルーツ大福」が伝わります。','常温で手軽に贈れるという「利便性」を持ちながら、受け取った方が喜ぶ商品。'],recommend:'常温保存が可能で大福のような商品は類がないので「新しいもの好き」な方へのギフトを探している方におすすめです。',ingredient:'美味しさを引き出すために、3つの要素の「マリアージュ」にこだわっています。酸味のある果実：フルーツ本来の味わいを感じられるよう、果肉入りのフルーツソース（いちご、みかん、キウイ）を使用し、心地よい酸味を活かしています。',method:'独自の技術により、常温流通と凍らせた時の美味しさを両立させています。製造工程において、おもちの層の間にクリーム層とフルーツソースを丁寧に充填していくことで、一口で全ての素材が調和する構造を作り上げています。',story:'ホームユーステストを実施し、消費者が「常温で贈れる便利さ」や「専門店の味を家庭で楽しめる贅沢感」に高い価値を感じていることを確認。商品名やデザインも、それらの価値がストレートに伝わるよういたしました。',cooking:'冷凍庫で7時間以上凍らせて常温で10分程解凍してお召し上がりください。',media:'',notes:''},
+      {id:62,name:'セゾン　デュ　フリュイ　凍らせて国産果実シャーベット12個入',catchCopy:'産地まで厳選した国産果実を使用した凍らせて食べるシャーベットです。',priceBase:3400,priceTax:3672,category:'スイーツ',maker:'片岡物産(株)',createdAt:'',features:['「セゾンデュフリュイ（Saison du Fruit）」は"果物の季節"という意味','「常温保存可能」で「食べきりサイズ」。食べたいときに凍らせて食べられます。','北海道から沖縄まで厳選した原料を組み合わせました。','果実のおいしさを探求したシャーベット。','好きな果物ランキング上位の果物を使用。','食べきりサイズで、様々なシーンでお楽しみいただけます。','まるで果実をそのまま凍らせたようなみずみずしくも濃厚な味わい'],recommend:'"気軽に、夏ならではの味わいを大切な人へ贈りたい方へ。"夏にぴったりの爽やかなシャーベットなのに常温配送ギフトなので、相手の受け取り状況や冷凍庫事情に気兼ねなく贈ることができます。',ingredient:'【福岡産あまおう苺】甘みと酸味の濃厚な味わいが特長のいちごの品種です。【山梨産白桃】濃厚な果肉感、気品ある香り、ふくよかな食感が特長です。【北海道産メロン】赤肉メロンならではの、色鮮やかなオレンジ色の果肉と優雅な香り、濃厚な味わいが特長です。【沖縄産マンゴー】濃厚な甘みと芳醇な香りが特長です。',method:'産地まで厳選した国産果汁とピューレを使用。冷凍庫で凍らせて頂くことで、果実感たっぷりのみずみずしさや、濃厚な果実の味わいをお好きな時にお楽しみいただけます。',story:'冷凍食品の普及に伴い、自宅の冷凍庫の保管スペースがいっぱいとなっている状況において、「常温配送→ご自宅冷凍」という特長を持った商品の需要が急激に高まっています。「常温保存可能」・「食べきりサイズ」なので、食べたいときに食べたいものを凍らせて食べる、贈られた側に優しい商品設計です。',cooking:'常温の状態から冷凍庫で約8時間凍らせてお召し上がりください。（冷凍庫の能力により凍結までの時間が前後します）',media:'',notes:''},
+      {id:63,name:'セゾン　デュ　フリュイ　凍らせて国産果実シャーベット20個入',catchCopy:'産地まで厳選した国産果実を使用した凍らせて食べるシャーベットです。',priceBase:5100,priceTax:5508,category:'スイーツ',maker:'片岡物産(株)',createdAt:'',features:['「セゾンデュフリュイ（Saison du Fruit）」は"果物の季節"という意味','「常温保存可能」で「食べきりサイズ」。食べたいときに凍らせて食べられます。','北海道から沖縄まで厳選した原料を組み合わせました。','果実のおいしさを探求したシャーベット。','好きな果物ランキング上位の果物を使用。','食べきりサイズで、様々なシーンでお楽しみいただけます。','まるで果実をそのまま凍らせたようなみずみずしくも濃厚な味わい'],recommend:'"気軽に、夏ならではの味わいを大切な人へ贈りたい方へ。"夏にぴったりの爽やかなシャーベットなのに常温配送ギフトなので、相手の受け取り状況や冷凍庫事情に気兼ねなく贈ることができます。',ingredient:'【福岡産あまおう苺】甘みと酸味の濃厚な味わいが特長のいちごの品種です。【山梨産白桃】濃厚な果肉感、気品ある香り、ふくよかな食感が特長です。【北海道産メロン】赤肉メロンならではの、色鮮やかなオレンジ色の果肉と優雅な香り、濃厚な味わいが特長です。【沖縄産マンゴー】濃厚な甘みと芳醇な香りが特長です。',method:'産地まで厳選した国産果汁とピューレを使用。冷凍庫で凍らせて頂くことで、果実感たっぷりのみずみずしさや、濃厚な果実の味わいをお好きな時にお楽しみいただけます。',story:'冷凍食品の普及に伴い、自宅の冷凍庫の保管スペースがいっぱいとなっている状況において、「常温配送→ご自宅冷凍」という特長を持った商品の需要が急激に高まっています。',cooking:'常温の状態から冷凍庫で約8時間凍らせてお召し上がりください。（冷凍庫の能力により凍結までの時間が前後します）',media:'',notes:''},
+      {id:64,name:'四万十ドラマ　抹茶の焼きモンブラン10個入',catchCopy:'京都産抹茶を楽しめる焼きモンブラン',priceBase:4500,priceTax:4860,category:'スイーツ',maker:'（株）ごっつお便',createdAt:'2026/2/2',features:['抹茶モンブランクリームはひとつひとつ手絞り。','サブレ、アーモンド、モンブラン3層に抹茶を使用。','モンブランクリームのベースは高知県産さつまいも。','アクセントとしてサブレ生地に四万十産天日塩を使用。'],recommend:'抹茶好き、焼菓子好きの方に。',ingredient:'京都南山城村(みなみやましろむら)の抹茶を使用しています。',method:'モンブランクリームは一つ一つ手絞りです。',story:'京都で唯一の村、南山城村にある「道の駅 お茶の京都 みなみやましろ村」は、道の駅立ち上げから関わらせていただいたご縁があります。そんな交流のなかで生まれた商品です。',cooking:'そのままお召し上がりください。',media:'',notes:''},
+      {id:65,name:'菓匠　清閑院　宇治抹茶エンガディナー茶み12個入',catchCopy:'宇治抹茶を練り込んだキャラメルにくるみをぎっしりと。',priceBase:4100,priceTax:4428,category:'スイーツ',maker:'（株）菓匠清閑院',createdAt:'2025/7/1',features:['茶みの要(かなめ)は、香り高い京都府産の熟成宇治抹茶。','色合いもあざやかな宇治抹茶を練り込んだキャラメルに、くるみをぎっしりと。','バターを使用し、さっくりほろりとした食感に仕上げた生地で挟みました。','風味香ばしく、香り豊かな焼き菓子です。'],recommend:'老若男女問わず、さまざまな方におすすめです。',ingredient:'',method:'見た目もかわいらしく仕上げました。',story:'エンガディナーとは…スイス発祥の伝統的なお菓子。現地ではヌストルテとも呼ばれ、バタークッキー生地にくるみを詰めてみたことからこのお菓子が生まれたといわれています。',cooking:'常温でお召し上がりいただけます。',media:'',notes:''},
+      {id:66,name:'ミッシェル・ブラン　プレミアム　レモンバウム',catchCopy:'冷やしても美味しい夏のレモンバウム',priceBase:3700,priceTax:3996,category:'スイーツ',maker:'ベーグジャパン（株）',createdAt:'2026/3/10',features:['冷やしても美味しい新提案！','ベースはホワイトチョコをしみ込ませて、バウムに上からレモンジュレをかけました。'],recommend:'夏らしいものが食べたい方！ひんやりスイーツを楽しみたい方！',ingredient:'',method:'バウムの上からかけているレモンジュレはセブンイレブン特別仕様となり、通常よりも増量しております。また、バウム本体もホワイトチョコをしみ込ませることで濃厚に仕上げました。',story:'夏でもさっぱり爽やかに、かつ軽すぎないスイーツの食べ応えを楽しんでいただこうと、バウムクーヘンにレモンとホワイトチョコを掛け合わせることで、絶妙なバランスに仕上げました。',cooking:'そのまま、または冷やしても美味しく召し上がれます。',media:'',notes:''},
+      {id:67,name:'ヤスダヨーグルト　ヨーグルト詰合せ',catchCopy:'26年春ギフトと比べ2本増量！！　原料・製造方法にこだわったヨーグルトです。',priceBase:3650,priceTax:3942,category:'ドリンク',maker:'ヤスダヨーグルト',createdAt:'',features:['全アイテムを生乳から製造している。ヨーグルト本来の味わいを楽しめます。','増粘多糖類や香料、保存料などの添加物を一切使用していません。','26年春ギフトと比べ2本増量の14本でお届けします'],recommend:'ヤスダヨーグルトをご存じの方も、まだご存じでない方にもお薦めです。おひとりさまからご家族皆さんでシェアも◎',ingredient:'新潟県産生乳使用',method:'届いたその日に即製造。鮮度が違います。',story:'定番のドリンクヨーグルトの甘さは20世紀梨をヒントに切れ味のあるすっきりした糖度（15度）に調整致しました。',cooking:'もちろん、そのままでもよし、果物と一緒に、またスイーツに使ったり、お料理にも〇',media:'',notes:''},
+      {id:68,name:'サザコーヒー　リキッドコーヒー3本セット',catchCopy:'厳選したコーヒー豆でつくるワンランク上のアイスコーヒー',priceBase:3800,priceTax:4104,category:'ドリンク',maker:'サザコーヒーロースター',createdAt:'',features:['ネルドリップ：サザコーヒー本店と同じネルフィルターを使用した、まったりとした丸い口当たりが特徴。香りとコクが豊か。','将軍冷珈琲：人気商品である将軍珈琲のリキッドタイプ。徳川慶喜ゆかりの深煎りコーヒー。','リキッドコーヒーの為、手軽に本格的なコーヒーを楽しんでいただけます。','自宅やオフィスではもちろんのこと、贈答品としても重宝します。','濃度が濃くたっぷりの氷やミルクと割って飲んでもおすすめです。','それぞれの特徴が飲み比べしやすい2種セットです。'],recommend:'自宅やオフィスなどで手軽に本格的な味わいのコーヒーを楽しみたい方におすすめの商品です。また、ストレートで飲むのはもちろん、ミルクやシロップなど、アレンジがしやすく、自分好みの一杯を作りたいという方にもピッタリな商品です。',ingredient:'サザコーヒーでは、直接産地に足を運び、現地で豆を厳選しています。最高品質の豆にこだわり、豊かな香りとコクの感じられる商品に仕上げています。',method:'厳選された豆の特徴を最大限に引き出すため、適切な温度、抽出時間など、独自のプロセスを採用しています。また、鮮度を保つ為の工夫を凝らし、最後の一滴までおいしさにこだわりました。',story:'リキッドタイプの商品は、ご家庭やオフィスなどで手軽に本格派のコーヒーをお楽しみいただきたいという想いのもと、開発されました。',cooking:'ネルドリップ：氷がたっぷりと入ったグラスに希釈せずそのまま注いでいただくだけで、おいしくお飲みいただけます。将軍冷珈琲：ストレートでは将軍珈琲ならではの深煎りの珈琲をお楽しみいただけます。また、ミルクと割っていただくと、将軍珈琲の持つ芳醇な香りとミルクが絶妙にマッチします。',media:'',notes:''},
+      {id:69,name:'伊藤農園　5種のみかんストレートジュース8本入り',catchCopy:'5種類の100%ストレートジュースの詰合せ',priceBase:3850,priceTax:4158,category:'ドリンク',maker:'伊藤農園',createdAt:'',features:['100%ストレートジュース','濃厚な有田みかん果汁とすっきりしたかんきつジュースの飲み比べ','伊藤農園の果肉からのみ搾る贅沢な搾汁方法で、濃厚かつ後味すっきりの味わい'],recommend:'柑橘だけのストレートジュースですので、お子様やご年配のかたにも、安心してお召し上がり頂けます。',ingredient:'温暖な気候で水はけの良い土地で育った、柑橘100%のストレートジュース。有田は温州みかんの生産量No.1で、地域のおいしいみかんだけ使用します。',method:'みかんを搾る。ただ、それだけのシンプルな作り方ですが、手搾りのジュースと同じ味になるよう一つひとつ果実を半分に切り、上からやさしく搾りました。搾汁方法として一般的なインライン方式、チョッパーパルパー方式がそれぞれ搾汁率約65%～50%に対して、この搾汁方法では約30%でみかんの美味しい部分のみを楽しむ事ができます。',story:'約30年前、「紀州有田のおいしいみかんを多くの方に味わってもらいたい」という思いで、農家からB級みかんを農協より高く買い取り、みかんジュース作りを始めました。みかんを食べているような美味しさを表現できるまで試行錯誤を繰り返し、今では日本のみならず世界に向けても商品を出荷しています。',cooking:'冷やしてそのまま、お好みで氷を入れてお飲みください。また焼酎で割ったり、炭酸で割って飲んでもおいしいです。',media:'百貨店ギフト（三越伊勢丹、大丸松坂屋、阪急など）\n高級スーパー（明治屋、クイーンズ伊勢丹、三浦屋、トップワールド、光洋など）',notes:''},
+      {id:70,name:'伊藤農園　100%ピュアジュース　みかんしぼり　2ℓ',catchCopy:'和歌山の伊藤農園が作ったこだわりの100%ストレートジュース',priceBase:3550,priceTax:3834,category:'ドリンク',maker:'伊藤農園',createdAt:'2026/1/30',features:['原材料は全て和歌山県産温州みかんのみ','100%ストレートジュース','伊藤農園の果肉からのみ搾る贅沢な搾汁方法で、濃厚かつ後味すっきりの味わい'],recommend:'ストレートジュースですので、お子様やご年配のかたにも、安心してお召し上がり頂けます。',ingredient:'温暖な気候で水はけの良い土地で育った100%のストレートジュース。有田は温州みかんの生産量No.1で、地域のおいしいみかんだけ使用します。',method:'みかんを搾る。ただ、それだけのシンプルな作り方ですが、手搾りのジュースと同じ味になるよう一つひとつ果実を半分に切り、上からやさしく搾りました。搾汁方法として一般的なインライン方式、チョッパーパルパー方式がそれぞれ搾汁率約65%～50%に対して、この搾汁方法では約30%でみかんの美味しい部分のみを楽しむ事ができます。',story:'約30年前、「紀州有田のおいしいみかんを多くの方に味わってもらいたい」という思いで、農家からB級みかんを農協より高く買い取り、みかんジュース作りを始めました。みかんを食べているような美味しさを表現できるまで試行錯誤を繰り返し、今では日本のみならず世界に向けても商品を出荷しています。',cooking:'冷やしてそのまま、お好みで氷を入れてお飲みください。また焼酎で割ったり、炭酸で割って飲んでもおいしいです。',media:'百貨店ギフト（三越伊勢丹、大丸松坂屋、阪急など）\n高級スーパー（明治屋、クイーンズ伊勢丹、三浦屋、トップワールド、光洋など）',notes:''},
+      {id:71,name:'山田養蜂場　はちみつスカッシュ（瀬戸内レモン）',catchCopy:'はちみつと瀬戸内レモン果汁の風味を活かした爽やかな炭酸飲料',priceBase:3800,priceTax:4104,category:'ドリンク',maker:'山田養蜂場',createdAt:'',features:['皮が薄く優しい酸味の瀬戸内産ノーワックスレモンの果汁を使用','試作を繰り返して瀬戸内レモンとの相性がよかった、ルーマニア産ヒマワリ蜂蜜で仕上げています。','自然の風味を活かすために、はちみつだけの甘さで仕上げています。','暑い夏に爽快感を感じていただけるように、果汁の風味を活かすことができる炭酸の量に調整しています。','26年夏ギフト、はちみつスカッシュ（瀬戸内レモン）が購入できるのはセブン-イレブンだけ'],recommend:'・飲料ギフトをお求めの方で、こだわりの商品をお求めの方・目上の方への贈り物など健康を気遣う方',ingredient:'はちみつスカッシュ（瀬戸内レモン）には、糖度も高まり皮が薄く優しい酸味に育ったノーワックスの瀬戸内レモンを使用。様々な蜂蜜の試作を繰り返して、相性のよかったルーマニア産ヒマワリ蜂蜜で仕上げています。',method:'暑い夏に爽快感を感じていただけるように、果汁の風味を活かすことができる炭酸の量に（炭酸を強く）調整しています。',story:'2016年セブン＆iグループ限定商品として新発売した「はちみつスカッシュ（ゆず）」は、夏ギフトで2万セットを超える大人気商品としてご愛顧いただき、その後、2020年まで様々なフレーバーを展開して販売いたしました。昨年2025年に、5年ぶりに新フレーバーの瀬戸内レモンを使用し、炭酸量を調整した、新商品はちみつスカッシュ（瀬戸内れもん）として新発売して限定数を完売いたしました。',cooking:'ゆっくりと逆さにしてからお飲みいただくと、レモン果汁とはちみつのうまみと香りが全体に広がり、おいしくお飲みいただけます。',media:'',notes:'※はちみつは満1歳未満の乳児には食べさせないでください。※れもん果汁由来の成分が浮遊・沈殿したり、時間の経過により変色したりしますが、品質には問題ありません。'},
+      {id:72,name:'山田養蜂場　はちみつ紅茶焼菓子詰合せ',catchCopy:'有機素材を使用したはちみつ紅茶と、中からはちみつやチョコのソースが出てくる焼き菓子',priceBase:3650,priceTax:3942,category:'ドリンク',maker:'山田養蜂場',createdAt:'',features:['（はちみつ紅茶）お湯を注ぐだけではちみつの豊かな風味と紅茶の香りが楽しめます。','（はちみつ紅茶）紅茶に直接スプレーではちみつを吹きかけることで、はちみつの香りが際立ちます。','（はちみつ紅茶）スリランカ産有機ウバ茶・ルーマニア産有機アカシア蜂蜜を使用。','（はちみつ紅茶）人工甘味料不使用・合成香料不使用','（ハニースケップクーヘン）中からはちみつやチョコのソースが出てくる仕様に仕上げました。'],recommend:'・菓子ギフトをお求めの方で、こだわりの商品をお求めの方・目上の方への贈り物など健康を気遣う方',ingredient:'（はちみつ紅茶）世界三大紅茶として知られるスリランカの「ウバ茶」、その中でも生産量0.1%未満という稀少な有機栽培ウバ茶を使用。はちみつはルーマニア産の有機養蜂場で採蜜されたアカシア蜂蜜を使用。',method:'（はちみつ紅茶）アカシア蜂蜜を茶葉にスプレーで吹きかけ均一に混ざ込むことで、はちみつの香りが際立ち、紅茶を口に含んだ瞬間に、やわらかなはちみつの香りに包まれます。（ハニースケップクーヘン）カステラ生地の中からはちみつやチョコのソースが出てくる仕様に仕上げました。',story:'東欧や中東では、昔から「体調がすぐれないときには、はちみつ入りの紅茶」という習慣が生活の知恵として受け継がれ、今も愛されています。はちみつのプロフェッショナルとして自信をもっておすすめできる「はちみつ紅茶」を作りたいという想いから商品開発がスタートし、最高品質のアカシア蜂蜜に合う茶葉を世界各国の数十種類から探し求め、スリランカ産のウバ茶にたどり着きました。茶師とともに何十回も試作を繰り返し、人工甘味料使用せずに、はちみつ本来の豊かな風味と紅茶の豊潤な香りによる感動を実現しました。',cooking:'（はちみつ紅茶_ストレート）熱湯をカップに150～200ml注ぎ、ティーバッグを入れて1～2分程度蒸らしてください。ティーバッグを取り出してお飲みください。（はちみつ紅茶_ミルクティー）少し濃く淹れた（熱湯75～100ml）はちみつ紅茶ストレートに、温めたミルクを注げばミルクティーの完成です。',media:'',notes:'※はちみつは満1歳未満の乳児には食べさせないでください。'},
+      {id:73,name:'「カルピス」　プチ　ポーション　50P',catchCopy:'コップ一杯分のコンク「カルピス」が入ったポーション',priceBase:4150,priceTax:4482,category:'ドリンク',maker:'アサヒ飲料(株)',createdAt:'',features:['ポーション容器入りの1杯分の希釈用「カルピス」','いつでも開けたてのおいしさが楽しめる','個包装なので、いつでも一定の分量で作れる','持ち運びが容易なので「カルピス」を、自宅以外の外出先でも自由に楽しめます。','1回使い切りなので、開封後冷蔵庫の保管場所が必要ない'],recommend:'・カルピスを飲みたいが、コンク1本は消費しきれない方・1対多の贈答需要（景品、内祝い、結婚式のプチギフト、記念日ギフト）',ingredient:'アサヒ飲料社独自の乳酸菌（カルピス）。',method:'100年以上継承されている、アサヒ飲料社独自の乳酸菌発酵の製法（カルピス）。',story:'儀礼的贈答が縮小する一方、より気軽に相手に想いを伝えられるカジュアルギフトが各世代で伸長している。1対多の贈答需要（景品、内祝い、結婚式のプチギフト、記念日ギフト）を狙い、商品を開発。',cooking:'お好みにあわせて4～5倍を目安にうすめて飲用。',media:'なし',notes:'なし'},
+      {id:74,name:'トワイニング　ティーバッグダージリン50P＆アールグレイ',catchCopy:'ベルガモット（柑橘類）の爽やかな香りと紅茶の味わいのアールグレイときわだつ香りと繊細な渋みをあわせ持つとてもデリケートな香味のダージリン',priceBase:3500,priceTax:3780,category:'ドリンク',maker:'片岡物産',createdAt:'',features:['アールグレイ：ベルガモット（柑橘類）の爽やかな香り','ダージリン：香りと繊細な渋みをあわせ持つとてもデリケートな香味','各50杯合計100杯入った自家需要ギフト','ティーバッグなのでお湯で蒸らしたら簡単本格紅茶の出来上がり'],recommend:'頻繁に紅茶を飲む方に香り豊か紅茶を。',ingredient:'アールグレイ：ベルガモット（柑橘類）の爽やかな香りと紅茶の味わいがひとつになった人気のブレンドです。ダージリン：きわだつ香りと繊細な渋みをあわせ持つとてもデリケートな香味は、世界の紅茶通に広く支持されています。',method:'トワイニング紅茶は世界に10名ほどしかいないマスターブレンダーによってブレンドされます。なのでブレンドの品質は常に高く味わいにブレなく本日まで伝統が続いております。',story:'もっと紅茶をお得にたくさん飲んで欲しいという思いから自家需要ギフトが生まれました。',cooking:'ダージリン（約2分）・アールグレイ（約1分）　※（　）内は、標準的な浸出時間です。ティーバッグ1袋はカップ1杯分です。熱湯140mlが1杯分の目安です。※アイスティーで：濃いめのホットティーをつくり、氷をたっぷり入れたグラスに注ぎます。',media:'',notes:'おすすめの召し上がり方　ダージリン…ストレート、アールグレイ…ストレート、ミルク、アイス'},
+      {id:75,name:'モンカフェ　スペシャルブレンド50P',catchCopy:'50杯入ったモンカフェドリップコーヒーのお得なセット。あらゆるシーンに挽きたてのおいしさをお届けします。',priceBase:4600,priceTax:4968,category:'ドリンク',maker:'片岡物産',createdAt:'',features:['50杯入ったお得なセットです。','1984年発売。ドリップコーヒーのパイオニアブランド「モンカフェ」','お湯を注いだ時にフィルターがコーヒーに浸からない、ハンドドリップと同じ構造になっています。','浸からないことで雑味が少なく、豆本来の豊かな風味とコクを楽しめます。','挽きたてのコーヒー豆をすぐに密封する独自の製法でいつでも新鮮な香りを楽しめます。'],recommend:'頻繁にコーヒーを飲む方に上質なコーヒーを。',ingredient:'【スペシャルブレンド】選されたコーヒー豆を深めに焼き上げて、マイルドなニガ味とコクのある味わいに仕上げました。',method:'コーヒー豆は焙煎し粉砕をすると酸素に触れることでコーヒーにとって大事な香りが急激に劣化していきます。私たちはお客様がお飲みになるどんな時でも「モンカフェ」で挽きたての香りを楽しんでいただけるように独自の技術で開発した専用製造ラインにより、豆を挽いてからすぐに個包装にパックし、挽きたての香りをしっかりと封じ込めるようにしています。',story:'頻繁に飲まれる方には1杯単価も大事としてお得なセットを開発。簡易ドリップコーヒーであっても、お客様にお飲みいただきたいコーヒーは高品質なものであって欲しいと考えています。コーヒー鑑定士の資格を有した開発担当者がコーヒー豆を吟味し、配合から焙煎、粉砕に至るまで全ての工程に細心の注意を払い製造しています。',cooking:'まずは熱湯をコーヒーの粉全体に軽くかけ、10秒ほど蒸らします。この10秒がコーヒーのおいしい成分を抽出するためにもっとも大切です。その後、熱湯を2～3回に分けて繰り返し注いでいきます。お湯を注ぐ目安は140mlがおすすめです。',media:'',notes:''},
+      {id:76,name:'海津屋 氷見うどん「細麺」',catchCopy:'麺そのものが持つ旨みが自慢。つるりとした食感、のどごしの良さは格別。',priceBase:3600,priceTax:3888,category:'麺類',maker:'(株)海津屋',createdAt:'',features:['伝統の手延べ製法にこだわり、足踏みの手法を生かした氷見うどん。','油を使わずに仕上げています。','つるりとした喉ごしが抜群です。','独特の強いコシと粘り、餅のような食感と風味が特長です。','秋田の稲庭うどん、長崎の五島うどんと並び、日本三大手延べうどんの一つ。','細い麺線ですがコシと弾力があり煮崩れしにくいので、冷でも温でも美味しい。','職人の経験と勘により天候や気温にあわせて、水・塩加減を微妙に調整して練り上げています。'],recommend:'常温保存で賞味期限が製造から15ヶ月と長く、また細い麺線でのどごしも良いので、夏の暑い時期の贈答に適しています。お中元や暑中お見舞い、残暑お見舞をご検討のお客様にお勧めです。',ingredient:'主原料の小麦の原産地は、オーストラリアと日本です。厳選した4銘柄の小麦粉を配合しております。',method:'練り上げた麺生地を綾掛けして引き延ばす「手延べ」。能登で生まれたその伝統技法を受け継ぎ、麺の生地を踏む「足踏み」を繰り返し、独自の工夫を重ね、油を使わずに仕上げます。またその日の天候や気温に合わせて、水・塩加減を微妙に調整して練り上げています。',story:'一番最初の商品は半生太麺でした。賞味期限が短く茹で時間が長いといった問題があり、困っていた時に開発したのが乾麺の「細麺」です。当初は氷見ひやむぎとして販売していましたが、冬場の贈答に使えないので商品名を「細麺」に変更しました。これが好評で口コミでの販路が拡大し、氷見うどんの代表商品となりました。',cooking:'沸騰したたっぷりのお湯（麺100gに対して水1ℓ）で、ゆでるのがコツです。沸騰したお湯に麺を入れ、ふき上がったら火を弱めてください。茹で時間は約7分。茹で上がったら手早くザルに移し冷水で水洗いしてください。',media:'ニューヨーク・タイムズの「2025に行くべき52ヵ所」に富山市が選定され、今年の富山は注目されています。',notes:''},
+      {id:77,name:'北海道名店ラーメン詰合せ',catchCopy:'北海道が誇る名店ラーメンを選りすぐった寒干しラーメンの詰め合わせ',priceBase:3500,priceTax:3780,category:'麺類',maker:'菊水',createdAt:'',features:['北海道が誇る名店ラーメン選りすぐり寒干しラーメンをセットにしました。','生麺を非加熱で乾燥し、小麦の旨味を封じ込めた寒干し麺です。','3種類の名店の味をご自宅でお楽しみいただけます。'],recommend:'人気有名ラーメン店の味をご家庭で楽しみたい方に',ingredient:'',method:'小麦の味わいを壊さず、非加熱でじっくり乾燥させた寒干しラーメンには、生麺そのままのおいしさが生きています。',story:'北海道のラーメン文化は、2001年に「北海道遺産」にも指定されました。道内には多くの人気有名ラーメン店があり、「菊水名店セット」は空港・駅のお土産売場でも人気となっております。その人気名店の味を再現し、選りすぐりのセットにしております。',cooking:'麺と付属スープを裏面の調理方法でお召し上がり頂けます。お好みの具材を盛りつけ、お召し上がりください。',media:'',notes:'セブン－イレブン・ジャパンのオリジナルセット商品です。'},
+      {id:78,name:'国産熟成　おいしい三輪そうめん　光射す',catchCopy:'小麦も葛も塩も、すべて国産。',priceBase:3600,priceTax:3888,category:'麺類',maker:'三輪そうめん小西',createdAt:'',features:['小麦粉：国産100%','本葛粉：国産本葛100%','塩：国産塩','乾燥状態でもシルクのような肌つや。','調理後はなめらかな喉ごし・しっかり食感・軽やかな口当たり。','国産小麦と本葛の上品な甘み。'],recommend:'老若男女、安全安心をお求めの方',ingredient:'小麦粉：国産100%、本葛粉：国産本葛100%、塩：国産塩。使用する塩も厳選し、製造段階では通常より多くの塩分を麺にまとわせています。',method:'三輪盆地の冷涼な環境で12～5月の約6ヶ月間のみ製造。五代目麺師が一束ずつ確認し仕上げ。温度・湿度を徹底管理し冷風乾燥。',story:'創業120余年、次世代基準"美味しい・安全"を追求し五代目麺師が試作を重ね完成。国産本葛100%を加えた特別仕様。',cooking:'沸騰したたっぷりのお湯で120～150秒。お好みで調整可能。',media:'',notes:''},
+      {id:79,name:'信州戸隠そば　本十割生そば詰合せ',catchCopy:'ご家庭で本場信州の十割そばを召し上がれます。',priceBase:3400,priceTax:3672,category:'麺類',maker:'信州戸隠そば(株)',createdAt:'2026/2/6',features:['本十割生そばの詰合せ','本十割は　北米産と国産そば粉のブレンド','比熱処理の為、限りなく生麺に近い味でご賞味いただけます','比熱処理で十割そばの半生そばを製造出来る製麺所は弊社だけ'],recommend:'「蕎麦はお店で食べるもの」と思っている方（販売しているそばが美味しくない）と考えている人に食べていただきたい。またお土産店で販売している物を美味しいと思っている人に本物の味を味わっていただきたい。',ingredient:'本十割そばは、北米・国産のブレンド粉を厳選使用',method:'本来、お土産店・スーパー等で販売されている半生そばは蒸気（ボイル）殺菌をして販売している蒸しそば。当社は生麺を水分調節だけで製造している為、麺の味、食感が違います。濃厚なそば湯が自慢です。また、当社は2022年には農林水産大臣賞を受賞した高い技術力を受賞しました。',story:'',cooking:'',media:'',notes:''},
+      {id:80,name:'宇都宮餃子会監修　おうちで餃子満喫セット（肉・野菜・しそ入り）',catchCopy:'餃子の街で有名な宇都宮餃子がおうちで存分に味わえます！',priceBase:4000,priceTax:4320,category:'麺類',maker:'国分グループ本社(株)((株)マルシンフーズ)',createdAt:'',features:['宇都宮餃子会監修　承認標章をいただいている餃子セット','肉餃子：豚肉と鶏肉を使用し、お肉の食感とジューシーな味わいが感じられるように配合しました。隠し味に芝麻醤とごま油・XO醤を使用。','しそ餃子：国産　青しそを使用、上品で爽やかな味に仕上げております。','野菜餃子：国産のキャベツをふんだんに使用し、ニラや生姜・ニンニクなどで風味と旨味を整えました。野菜本来の甘みを活かしています。'],recommend:'おうちで宇都宮餃子が食べたい分だけ存分に食べていただけます。肉・野菜・しそ入りと色々な味を満喫したい方にピッタリ！！！',ingredient:'国産キャベツ・国産青しそ使用。基本国産豚肉を使用しているが緊急時を踏まえカナダも表示。皮：小麦（準強力粉）・もち米粉を使用しもちもち食感としております。',method:'皮はミキサーで混合後　餃子成型機で圧延し型抜き後に具を載せ包んでいます',story:'食品ギフト商品がおうち需要拡大する中で、餃子の街宇都宮で有名な宇都宮餃子を存分に味わっていただけるギフト商品を開発しました。',cooking:'熱したフライパンで約10分加熱（蒸し焼き後水分をとばす）。焼き上がる手前にごま油を適量かけるとより一層風味が増します。',media:'ただ宇都宮餃子及び餃子会のテレビ出演は多数あり。毎年11月に行われる宇都宮餃子祭りでは多くの人がにぎわいます（2025年度には2日間開催で約16万人の人が来場）',notes:''},
+      {id:81,name:'石丸製麺　もり家ぶっかけうどんセット（8人前）',catchCopy:'行列のできる本場讃岐うどん銘店の味。',priceBase:3650,priceTax:3942,category:'麺類',maker:'下田商事(株)',createdAt:'',features:['香川県の行列のできる人気の銘店「本格手打もり家」の専用商品','自宅で簡単に讃岐の銘店の味が愉しめます。','お店と同等の麺の太さ、モチモチ感を表現。','当社独自の手打ち式製法で練り上げ、一本一本切りだしました。','温／冷あらゆるメニューに対応可能です。','たっぷり8人前。','賞味期間は製造より常温で90日。'],recommend:'すべての麺好きの方々に自信をもってお勧めいたします。',ingredient:'うどんの主原料である小麦粉は、つるみの良い良質な小麦粉を使用しています。小麦粉は全て自動制御で小麦粉の搬入・搬出、ブレンドを行っています。うどんは色、香り、粘りそれぞれに優れた小麦粉をブレンドすることで、絶妙な味が引き出されます。',method:'讃岐うどんの特徴でもある、角の立った麺。ツルツルモチモチとした食感を出す為に手打式製法で製麺し、包丁カッターで一本一本丁寧に切り出しました。',story:'外食うどん店の隆盛で讃岐うどんファンの裾野が広がるなか、より深く讃岐うどんの美味しさを知っていただきたいとの思いから、各メディアで紹介されている行列のできる人気うどん店「本格手打もり家」専用商品の詰合せセットを開発いたしました。',cooking:'【ゆで時間20分】めん1袋（220g、2人前）に対して、2L以上の沸騰したお湯で、さし水をせず火加減を調節しながら、お好みのかたさにゆでる。ゆで上げ後、ざるにあげ、手早く冷水で2～3回しっかりもみ洗いし、めんのぬめりをとる。●ぶっかけうどん：めんを丼に入れ、お好みの薬味をのせ、ぶっかけつゆをかけてお召し上がりください。',media:'【本格手打もり家】2015年にNHK「プロフェッショナル仕事の流儀」で紹介され一躍全国区の人気となりました。',notes:'石丸製麺：創業122年。2026年12月新工場竣工予定。'},
+      {id:82,name:'五島手延うどんとあごつゆ詰合せ',catchCopy:'日本三大うどんとも言われている上五島の麺匠達の逸品',priceBase:4350,priceTax:4698,category:'麺類',maker:'(株)長崎五島うどん',createdAt:'',features:['細いながらももちもちとした独特のコシ。','つるっとした喉ごし。','麺自体のうまさ。','冷やしでも温でもOK。','和・洋・中と多彩なアレンジレシピ。'],recommend:'うどんが大好きな方、食のこだわりのある方。安心・安全に努めているので、幅広い年齢の方にお勧めです。',ingredient:'①小麦粉…麺の匠達が選び抜いたオーストラリア、アメリカ、日本の小麦粉をブレンドしたもの（麺のうまさ）（モチモチ感・独特のコシ）②五島灘の海水から作られたミネラル豊富な塩（麺のうまさ）③上五島産椿油…100%使用（オレイン酸豊富・麺の風味を保つ）',method:'弊社うどんは、熟成と乾燥時間を多くして、じっくり、ゆっくり乾燥により麺を引き締め、延びにくくモチモチしたコシを引き出している。引き延ばしと熟成（ねかし）を繰り返しながらじっくり熟成させている。真粉のみでつくっている。麺を延ばすときの油は、上五島産の椿油を100%使用している。麺の長さは25cmにし、喉ごしの良さを引き出している。',story:'遣唐使によって中国から伝えられたとされる索餅（さくべい：小麦粉を練って平にし、渦巻き状に切って細く延ばしていく）、五島手延うどんはこの製麺方法受け継いでいる。生地を練り上げる際の塩の濃度、水の量、麺を延ばすのに使う椿油の量、すべてはその日の天気・温度・湿度に応じて素材との対話の中で細かく調整されている（代々伝わる匠の技術）。',cooking:'①ざるうどん…大鍋でたっぷりのお湯を沸かし、沸騰したら麺をパラパラとくっつかないように約6分～7分くらい茹で、茹で上がったら冷水で洗う。同梱の4倍希釈のつゆなどで食べる。②地獄炊き…大鍋でたっぷりのお湯を沸かし、沸騰したところでうどんを入れる。茹で上がったら（約6分～7分）うどんすくい棒で鍋からすくいあげる。事前にお椀に①生卵②あごつゆを用意する。生卵を溶いてつゆを少々入れる。茹で上がった麺をお椀にとり、生卵+つゆにからませてたべる。',media:'',notes:''},
+      {id:83,name:'島原手延素麺　絹の輝　23束入り',catchCopy:'製麺技能士が作ったコシが強くなめらかな食感と茹であがりの透明感が特長の麺です。',priceBase:3250,priceTax:3510,category:'麺類',maker:'有限会社野村屋',createdAt:'',features:['弾力性のあるコシの強い麺','滑らかな食感の麺','茹であがりの透明感が特徴の麺','セブンイレブン限定商品','コシが強く煮くずれしにくい麺'],recommend:'長年取り扱ってもらっており、かなりのリピーターがいらっしゃるとの事です。今迄のお客様に食してもらう事と、新しい若い年代の人たちにも（煮くずれしにくい麺ですので）食してもらいたいです。',ingredient:'小麦粉…麺のうま味を出す為毎日毎日試食をし、グルテンの含有率の高いアメリカ産の小麦と佐賀県産の小麦をブレンドした、「絹の輝」というオリジナルの小麦粉を使用。ごま油…そうめんのクレームで、一番多いのが麺の酸化です。',method:'二日工程…単一等級製麺技能士（国家資格）によって「こねる」→「油かえし」→「かけば」→「空箱熟成」→「こびき」→「かどほし」→「こわり」→「乾燥」→「結束」これだけの工程を、二日間かけて生地を熟成させながら、他社より長い時間手間暇かけて、グルテンにキズが入らないように製造しております。',story:'以前は、三輪そうめんの下請けで麺を製造しておりましたが、平成8年にセブンイレブン様商品部様より、麺がすごく美味しいので、自分で商品化して販売してみないかとアドバイスを受け、平成9年度より、島原手延素麺　絹の輝をセブンイレブン様にギフト、単品で取り扱ってもらうようになりました。',cooking:'・冷しそうめん・ぶっかけそうめん・煮麺・チャンプル麺',media:'地元新聞',notes:''},
+      {id:84,name:'JA島原雲仙　島原手延素麺　お得用',catchCopy:'強いコシと滑らかなのど越しのギフト用そうめんを包材を簡素化。',priceBase:3950,priceTax:4266,category:'麺類',maker:'(株)イケガヤ',createdAt:'',features:['強いコシと滑らかなのど越しのギフト用そうめんを包材を簡素化'],recommend:'夏なので、季節感のある素麺が良いと考えている方。品質と量を重視。他人向けよりも自家消費の品をお求めの方。',ingredient:'日本名水百選の島原湧水と厳選した強力系の小麦粉、五島灘の海塩を使用して作りました。',method:'小麦粉・塩・水を練った生地を、延ばしては寝かせの工程を何度も繰り返し、寒風と湿度の低い冬の気候を利用して作ることのよりコシが強い麺になります。',story:'',cooking:'①沸騰したたっぷりのお湯で麺を茹でる（約2分）⇒②ザルにあけ、流水で洗い、ヌメリをとり水気をきる。⇒③準備した器に素麺を盛付け完成。お好みのつゆや薬味でお召し上がりください。',media:'なし',notes:'なし'},
+      {id:85,name:'ぴょんぴょん舎　盛岡冷麺セット',catchCopy:'本場の味をそのままお届け。麺とスープとキムチ、三位一体のベーシックなお買い得セット',priceBase:3950,priceTax:4266,category:'麺類',maker:'(株)中原商店',createdAt:'',features:['厳選した馬鈴薯澱粉と小麦粉を使用した弾けるような食感とつるっとした喉ごし','牛骨・鶏ガラなどをじっくり煮込み素材の旨みをしっかりと活かしたスープ','シャキシャキとした大根とキャベツの食感にHOTな辛味と爽やかな酸味のキムチ','こだわりの麺・スープ・キムチ、この三味一体の調和が絶妙な本格冷麺','麺とスープとキムチのシンプルな組み合わせ','6食入りの大容量セット'],recommend:'本格的な食卓のメインに、暑い季節にはぴったりの涼味。ご自宅用や手軽な贈答用にも最適。',ingredient:'厳選した馬鈴薯澱粉と小麦粉を独自配合で使用。アクセントのキムチは食感を活かすために大根とキャベツを使用した冷麺専用。',method:'「焼肉・冷麺　ぴょんぴょん舎」にて全国のお客様からご好評を頂いている盛岡冷麺の味をそのままお届けする為、店舗で提供している味をそのままパックしたこだわりの商品。盛岡冷麺の味の決め手となるスープは、牛肉と牛骨に鶏ガラも加えることで、素材の持つ甘みをプラスし、全体として濃厚な旨みのあるスープに仕上げています。さらに丁寧に漉すなどして動物性脂肪を完全にスープから除去していることから、よりヘルシーな仕上がりとなっています。',story:'開発当初から主流であった乾麺や半生麺と濃縮スープの盛岡冷麺はお店の味と違う、ゴムのように嚙み切れないと言った声をお客様から頂くことが多く、本場盛岡の味を全国のお客様にもご家庭でお召し上がり頂きたいという想いから本格生タイプの盛岡冷麺の開発に着手し、平成2年にベースとなる盛岡冷麺を発売。',cooking:'よく沸騰したお湯で麺を茹で、冷水でしっかりと締めた後に水分をしっかりと絞るのがポイント。そうすることでスープが薄まらずにコク深い味わいをお楽しみ頂けます。',media:'バナナマンのせっかくグルメ！！、ZIP！、ヒルナンデス！、かまいまち　街グルメをまじ探索！、満天☆青空レストラン、朝だ！生です旅サラダ、秘密のケンミンSHOW、その他雑誌掲載等',notes:''},
+      {id:86,name:'無限堂　稲庭うどん「ゆめ飛龍」無選別',catchCopy:'二つの北海道産小麦で、つるっと満足の稲庭うどん。',priceBase:4200,priceTax:4536,category:'麺類',maker:'(株)無限堂',createdAt:'',features:['原料にこだわり、2種類の北海道産小麦をブレンドして仕上げた稲庭うどん','ブレンドすることにより、稲庭うどんの特長である食感が際立っています。','商品名「ゆめ飛龍」の命名経緯は、商品開発背景・ストーリー欄に記載。','当社の既存品と明らかに食感が異なり、自社飲食店舗で麺をゆでた際に好評。','昨今の物価高状況を踏まえ、お客様にお得感、ボリューム感を提供。','切り落としの麺は通常のもの（25cm）に比べ短い（約16cm）です。','短い麺はつるっとお召し上がり頂けます。暑い時期やお子様のおやつにも。'],recommend:'・麺は食べたいけど、普段食べている麺に飽きている方。ワンランク上の麺をご自宅で召し上がりたい方。・稲庭うどんは知っているけど、食べたことがない方、試してみたい方。・商品の背景（ストーリー）にもこだわる方。',ingredient:'・北海道産小麦を2種類ブレンドすることにより、稲庭うどんの特長である「滑らかなのど越し」、「コシ」を最大限際立たせています。',method:'・稲庭うどんの製法は今から300年以上前、江戸時代に確立されたと言われており、それは「手綯い（てない）製法」と呼ばれております。・当社は今なお、その製法を守り続け、多くの工程を職人達が手作業で、1本1本丁寧に仕上げています。',story:'・「稲庭うどんの特長をもっと引き出すにはどの様な小麦粉が適切か？」というテーマについて当社と日清製粉で議論やテストを重ねた結果、北海道産小麦を2種類ブレンドする、という結論にたどり着きました。・また、使用する小麦粉の商品名（現在は別の商品名に変更。商標は日清製粉が保有。）が「ゆめ飛龍」でした。当社創業者が祀っている「無限白龍神（むげんはくりゅうしん）」とのご縁から「ゆめ飛龍」と命名しました。',cooking:'（1）なるべく大きめの鍋に、沸騰したお湯を準備して下さい。（2）パスタの様に、パラパラと麺をお湯に入れ、約3分半茹でて下さい。（3）茹でている間、麺同士がくっつかないように、菜箸等で麺をかき混ぜて下さい。お湯の対流で麺が自動的に動き出したら、かき混ぜる必要はありません。',media:'ー',notes:'ー'},
+      {id:87,name:'山形県鶴岡産 殿様のだだちゃ豆',catchCopy:'山形県鶴岡市周辺の限られた地域でのみ栽培され、江戸時代から大切に育てられる枝豆です。',priceBase:3950,priceTax:4266,category:'野菜・果物',maker:'鶴岡市農業協同組合',createdAt:'',features:['外見は、さやの表面に茶色のうぶ毛があり、豆と豆の間にくびれがあります。','食味の点では、他の品種に較べて糖分が約1.5倍～2倍、遊離アミノ酸が約2～8倍と豊富に含まれております。','食味を低下させる蛋白質も少ないのが特長です。','ゆでた時の香りも良く、香り米などにも含まれる香気成分を含んでいます。'],recommend:'ビールのおつまみに最高です！夏場のだだちゃ豆にビール。一度食べるとなかなか止まりません。',ingredient:'種子は専門の農家が採種して生産者に供給し、厳しい種子の選別をしています。',method:'鮮度を保つため、まだ薄暗い早朝から収穫を行います。それを脱莢、洗浄、選別、包装の順に行い、選果場へ搬入します。搬入された枝豆は検査ののち予冷庫に入庫し、約5℃の低温で予冷・保管します。',story:'地場出荷中心だった「だだちゃ豆」を東京のスーパーのバイヤーから「東京に出荷して欲しい」という要望があり、出荷をスタートしたのが昭和61年度からです。',cooking:'1.洗い桶にだだちゃ豆を入れ、水を少なめに入れてゴシゴシ強くこすり、サヤの毛を洗い流す。2.ザルに上げて水気を切る。3.鍋にだだちゃ豆の量の約3倍の水を入れ、塩を少々入れて沸騰させる。',media:'',notes:'だだちゃ豆は鮮度が命です。美味しく食べていただくためには、収穫してから出来るだけ早く茹で上げることがコツです。茹で上げたら風味と香りを残すようすぐ冷ますのがおススメです。※お届けは8月下旬となります。'},
+      {id:88,name:'つまりちゃまめ',catchCopy:'新潟県妻有地域（十日町市・津南町）の豪雪地で育てた、芳醇な香りと豊かな甘みの茶豆です。',priceBase:4100,priceTax:4428,category:'野菜・果物',maker:'柳農産',createdAt:'',features:['トウモロコシの様な甘さ。','豪雪地帯育ち、香りと旨みが濃い。','茶豆は一般的な枝豆よりも香りと甘みが格段に違います。','茹でたときに茶豆のいい香り。','畑ごと土壌検査、施肥を最適化。','茶豆専門農家の栽培ノウハウ凝縮。'],recommend:'ビールのおつまみはもちろん、枝豆なんてどれも一緒と思う人は是非食べてみてください！一口食べた瞬間に口いっぱいに広がる香りと甘みで手が止まらなくなります。',ingredient:'',method:'枝豆の味を左右するのは「土地の土や気候」です。土壌検査を行いそれぞれの土壌に合った施肥設計（有機肥料や化成肥料の分量を計算）を用いて茶豆に最適な土づくりをしています。また生育・作業状況などを全てデータ管理し、それをもとに収穫適期を逃さず最高に美味しいタイミングで茶豆の刈取りをしています。',story:'標高300mから600mの大地で冬は3mも積もる豪雪地。冬の間約5ヵ月も雪の下でミネラルを豊富に取り込んだ肥沃な土壌が美味しい茶豆を育ててくれます。',cooking:'たっぷりの水が沸騰したら塩適量を入れ茶豆を投入。再沸騰してから90秒待ちザルにあけ、うちわ等で素早く冷まします。アツアツでも冷やしても美味しいです。',media:'',notes:'※お届け7月下旬から8月下旬となります。※お申込みは8月2日（日）までとなります。'},
+      {id:89,name:'宮崎県産　大きさいろいろマンゴー1.5kg',catchCopy:'樹上で完熟し自然落果するまでネットで受けて収穫する「完熟」栽培が最大の特長。',priceBase:7000,priceTax:7560,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['木で限界まで熟させるため、糖度が高く、花の蜜のような強い香りが特長。','熟して自然に落ちた実をネットでキャッチする手法のパイオニア。','美しい赤い外皮、ねっとりとした濃厚な果肉、食欲そそる甘い香り。'],recommend:'甘くて高品質な果物を楽しみたい人、贈り物に高級感あるフルーツを探している人、大きさは不揃いでも美味しいマンゴーを楽しみたい人へおススメな商品です。',ingredient:'宮崎県のマンゴーは「完熟」に徹底的にこだわって栽培しています。',method:'ネット収穫法は、2～3本の枝から、1個の最高の実を収穫するために、それ以外の実をすべて摘果し、収穫前の実にそっとネットを付け、ハサミを使わず完熟してぽとりと自然落下した実を収穫します。',story:'宮崎県では、昭和59年頃から生産が始まり、昭和62年には完熟して自然落果する果実をネット受けて収穫する技術が確立。',cooking:'冷蔵庫でよく冷やしてお召し上がりください。果実を三枚におろすように切り種をはずします。皮を切らないよう注意し、果肉に格子状に包丁を入れ、果肉を押し上げて皿に盛りつけます。',media:'',notes:'※お届けは7月上旬から7月下旬となります。※お申込みは7月15日（水）までとなります。'},
+      {id:90,name:'沖縄県産　やんばるマンゴー秀品　700g',catchCopy:'極上の甘み、贈り物に贅沢を。贈答用マンゴー。',priceBase:7000,priceTax:7560,category:'野菜・果物',maker:'万果',createdAt:'',features:['沖縄の太陽、やんばるの豊かな土壌、清らかな天然水によって育てられています。','世界自然遺産の大自然の中で栽培。','品種は特有のクセが少ない国内で一番人気のアップルマンゴー','芳醇な香りとあふれる果汁のなかに濃厚な甘みとほどよい酸味'],recommend:'果物を喜ぶ方や贅沢な味を楽しみたい方におすすめです。ビタミンやミネラルが豊富で栄養価が高いため、健康を気遣う方への贈り物としても喜ばれます。',ingredient:'ヤンバルクイナの生息地である沖縄の大自然の中で栽培、一年を通じてマンゴー栽培に取り組んでいます。',method:'蜜蜂交配で受粉作業を行い、クリーンな、栽培方法を行っている。加温ハウス・無加温ハウスと使い分け、出荷期間を長く取っている。',story:'',cooking:'実が柔らかくなり、表面につやが出て甘い香りがしたら食べごろです。冷蔵庫で冷やしてお召し上がりください。',media:'',notes:'※お届けは7月上旬から8月中旬となります。※お申込みは7月17日（金）までとなります。'},
+      {id:91,name:'JAきたそらち北竜（ほくりゅう）支所　ひまわりすいか　1玉',catchCopy:'北海道北竜町よりひまわり色のあま～いすいかをお届け。',priceBase:3800,priceTax:4104,category:'野菜・果物',maker:'キョクイチ',createdAt:'',features:['北海道の中央、「ひまわりの里」北竜町特産のひまわり色の黄色い小玉すいかです。','小ぶりで食べきりサイズのため、冷蔵庫にもすっぽり入ります。','甘味とみずみずしさの絶妙なバランス。さわやかな甘みと後味の良さ。','生産数が限られているため、市場でも流通量は少ない希少品。','商品には1玉づつに生産者の顔写真・名前入りのシールが貼付されています。'],recommend:'みずみずしさが特長の優しい味わいのすいかです。夏の乾いた体にさわやかに染み渡ります。',ingredient:'北海道の中央、「ひまわりの里」北竜町特産のひまわり色の黄色い小玉すいかです。',method:'ひまわりすいかの栽培にあたっては土作りを基本として、100%有機質肥料を使用し、こまめな見回りを行なうことにより農薬の使用も最小限にとどめ、環境に優しい農業を行なっています。',story:'北海道の中央、「ひまわりの里」北竜町特産のひまわり色の黄色い小玉すいかです。',cooking:'常温で保管し、食べる2～3時間前に冷蔵庫で冷やしてお召し上がりください。完熟した状態でお届けしておりますので、到着後はなるべく早めにお召し上がりください。',media:'',notes:'※お届けは6月下旬から8月中旬となります。※お申込みは7月30日（木）までとなります。'},
+      {id:92,name:'市場のセリ人が選ぶ　北海道産王妃メロン',catchCopy:'旬の北海道産赤肉メロン。大きさ見栄えとも最も優れた「特秀品ランク」の商品をお届け',priceBase:4600,priceTax:4968,category:'野菜・果物',maker:'(株)キョクイチ',createdAt:'',features:['夏に旬を迎える北海道の赤肉メロン。甘い香りと芳醇な味わい。','生産地が集まる北海道のほぼ中央、旭川の市場に北海道中から集まる赤肉メロンの中から厳選。','青果のプロ「セリ人」が気温の寒暖差と長い生育期間がもたらす最上位の品質を持った商品を自信をもってお届けします。','1玉約2.2kgの特大サイズのメロンを使用。'],recommend:'大きさ、見栄えともに最上級の赤肉メロンを楽しみたい方に',ingredient:'生産地が集まる北海道のほぼ中央、旭川の市場に北海道中から集まる赤肉メロンの中から、出荷時期にあわせて大きさ見栄えとも最も優れた「特秀品ランクの商品」をお届け',method:'北海道のほぼ中央、メロンの産地に近い旭川で長年メロンを取り扱い、培ってきた目利きの目で1玉づつ丁寧に選別、気温の寒暖差と長い生育期間がもたらす濃密な果肉と糖度が一段上の最上位の品質を持った商品を自信をもってお届けします。',story:'青果のプロ「セリ人」が選んだ最高の逸品をお届けする企画です。※セリ人とは：青果卸担当者のこと。',cooking:'メロンは食べ頃を迎える前に「収穫」し発送していますので、メロンがお手元に届いたら「食べ頃」を確認してください。食べ頃になったら召し上がりの2～3時間前に冷蔵庫に入れ、冷やしてお召し上がりください。',media:'',notes:'保存の際は「直射日光のあたらない場所」で保管してください。※お届けは7月下旬から8月中旬となります。※お申込みは7月30日（木）までとなります。'},
+      {id:93,name:'市場のセリ人が選ぶ　北海道産白いとうもろこし',catchCopy:'野菜のプロが選んだ、寒暖差の大きな北海道育ちの白いとうもろこし',priceBase:4600,priceTax:4968,category:'野菜・果物',maker:'(株)キョクイチ',createdAt:'',features:['昼夜の寒暖差が大きな北海道の北部で獲れた、白いとうもろこし。','野菜のプロである市場のセリ人が丁寧に商品を見定めお届け。','朝早い時間に収穫したものを、しっかりと予冷処理することで、美味しさを逃さずお届けします。','生で食べられるほど柔らかい粒皮とフルーツのような甘味をたっぷりお楽しみいただけます。'],recommend:'旬の北海道産の白いとうもろこしを楽しみたい方。',ingredient:'昼夜の寒暖差が大きな北海道の北で獲れた、白いとうもろこし。生で食べられるほど柔らかい粒皮とフルーツのような甘味をたっぷりお楽しみいただけます。',method:'を市場のセリ人が丁寧に商品を見定めお届け。朝早い時間に収穫したものを、しっかりと予冷処理することで、美味しさを逃さずお届けします。※セリ人とは：青果卸担当者のこと。',story:'',cooking:'到着後は冷蔵庫で保管し、その日のうちに茹でてください。（調理方法のレシピ付き）【電子レンジ調理】①皮をむいて軽く水をつけてラップで包む。',media:'',notes:'※お届けは8月中旬から8月下旬となります。'},
+      {id:94,name:'北海道産　JAきょうわ　らいでんメロン3玉（赤肉メロン）',catchCopy:'北海道共和町で生産される、芳醇な香りととろけるような甘み、滑らかな食感が特長の赤肉メロン',priceBase:6500,priceTax:7020,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['光センサー技術を導入し、厳格な糖度チェックが可能。','果肉は濃いオレンジ色で、強い甘みと香りが特長。','「ルピアレッド」「レッド01」「レッド113」「レッドティアラ」など出荷時期に合わせた品種を使用。'],recommend:'光センサー選別による安定した品質で、お中元などのギフトに最適です。',ingredient:'すべてのメロンを光センサーで測定し、糖度13度以上のものだけを選果して出荷しています。この徹底した管理により、誰が食べても甘くて美味しいメロンを約束しています。',method:'自然のメカニズムを利用した薬剤に頼らないクリーンなネギの混植栽培を実施。土壌中にはメロンへ悪さを行う悪玉菌が生息しますが、ネギの根にはそれらを抑えるシェードモナスという善玉菌が繁殖します。それらの拮抗作用により病害を未然に防ぐ効果があります。',story:'御中元商材のメインである「メロン」。お客様にお届けしやすい価格帯となっております。北海道JAきょうわが誇る「らいでんメロン」を是非ご賞味ください。',cooking:'メロンは、追熟が必要なフルーツで、陽のあたらない涼しい場所で保存する事で追熟する事により甘みが増します。甘くてみずみずしい香りが強くなり、底の方を軽く手で押して弾力を感じたら食べごろです。追熟したアールスメロンは食べる2～3時間ほど前に冷蔵庫で冷やすと、より甘みを感じられ美味しく頂けます。',media:'',notes:'※お届けは7月中旬から8月下旬となります。※お申込みは8月11日（火）までとなります。'},
+      {id:95,name:'茨城県産　JA茨城旭村　アールスメロン2玉',catchCopy:'厳しい検査による確かな品質を保証。メロンひとつひとつの履歴がわかります。',priceBase:5400,priceTax:5832,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['高級メロンの代表格で、黄緑色の果肉はジューシーで滑らかな食感。','完熟すると芳醇な香りがただよい、とろけるような甘さとなる。','果実はほぼ球状で。網目は細かく深さがあり、見た目も優れています。','1玉ごとの安心・安全のトレーサビリティシステム'],recommend:'糖度が保証されている商品をお求めの方・生産履歴を確認したい方。',ingredient:'平坦な地形と穏やかな気候、水はけの良い火山灰土の畑には、四季折々にさまざまな作物が上手に育つ茨城旭村。昼夜の寒暖差が大きくメロンの栽培に適した土地柄となっています。',method:'透過光を利用してメロンの糖度と熟度を測定していますので、食べごろに適したメロンだけが選定されます。大きさや形、ネット状態や色等の外観に加え、切らなければ分からない内部情報も最新鋭の光センサー選果機が安心、安全、そして確実においしいメロンを選定し、出荷します。',story:'JA茨城旭村は青果物管理センター（管内の生産物を集出荷及び一時貯蔵する施設）を有し生産者から提出された栽培管理台帳、防除日誌、検査データを一括管理しています。',cooking:'メロンは、追熟が必要なフルーツで、陽のあたらない涼しい場所で保存する事で追熟する事により甘みが増します。追熟したアールスメロンは食べる2～3時間ほど前に冷蔵庫で冷やすと、より甘みを感じられ美味しく頂けます。',media:'',notes:'※お届けは7月中旬から8月下旬となります。'},
+      {id:96,name:'山梨県産　JAふえふきシャインマスカット（ハウス）',catchCopy:'糖度が高く、皮ごと食べれる次世代ぶどう',priceBase:7400,priceTax:7992,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['糖度が高く、酸味が少ない','種がない','皮ごと食べれる'],recommend:'酸味が苦手な方、甘いぶどうを召し上がりたい方。',ingredient:'',method:'ハウスで栽培されているので、露地物より一足先にお楽しみいただけます。マスカット香が強く、種無しで皮ごと食べられ、甘みが強く酸味が少ないのが特徴。一粒一粒を大きくするために粒数を制限し、房自体も大きくなりすぎないように栽培し、食味を重視し糖度がのってから出荷を行っています。',story:'安芸津と白南をかけ合わせて育成された品種。病気に強く栽培しやすいため、作れやすさと美味しさを兼ね備えた品種です。',cooking:'食べる2時間前に冷蔵庫で冷やし、食べる直前に水で軽く洗ってからお召し上がりください。',media:'',notes:'※お届けは7月上旬から8月上旬となります。※お申込みは7月26日（日）までとなります。'},
+      {id:97,name:'山梨県産　JAふえふき八代の桃　一桃匠（いっとうしょう）1.3kg',catchCopy:'八代で育った選び抜かれた桃「一桃匠」',priceBase:5250,priceTax:5670,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['八代で栽培された桃の最上級規格が「一桃匠」となります。','光センサーを通し1玉1玉選果を行っております。','糖度12度以上'],recommend:'まだ八代の桃「一桃匠」を試した事がない方は是非お試しください。',ingredient:'安定した品質の桃を届けたいという想いから、透過式光センサーで果実全体の平均糖度を計って選果しています。',method:'「糖度12度以上、秀品以上の色目の良いものだけ」が「一桃匠（いっとうしょう）」を名乗れます。この時期の桃の中では抜群の甘さ。食べた時の華やかな桃の香りと甘さの余韻が長く、非常におススメの桃です。果肉が堅めなのも特長的。',story:'桃源郷とも呼ばれる山梨県は、昼夜寒暖の差が大きく、日照時間・水はけの良い土壌など、高品質の桃が栽培されやすい土地柄です。そんな八代の桃の中でも、外観・重さ・糖度12度以上など厳しい選果基準を満たしたものだけが、一桃匠（いっとうしょう）と呼ばれ出荷されます。',cooking:'食べる1～2時間前に冷蔵庫で冷やしてお召し上がりください。',media:'',notes:'※お届けは7月下旬から8月中旬となります。※お申込みは7月26日（日）までとなります。'},
+      {id:98,name:'和歌山県産　紀の里の桃　1.8kg',catchCopy:'フルーツ王国和歌山が誇る甘くみずみずしいブランド桃',priceBase:5400,priceTax:5832,category:'野菜・果物',maker:'万果',createdAt:'',features:['紀の里の桃は、日本でも有名な桃のブランドの一つです','和歌山県の温暖な気候と豊かな自然環境に育てられています。','甘さとジューシーさが特長で、独特の風味が楽しめます。','光センサーで、色づき、形を見極めてます。'],recommend:'甘くてジューシーな紀の里の桃は小さなお子様からご年配の方まで大人気です。',ingredient:'',method:'紀ノ川をはじめとする豊かな水、有機質に満ちた土壌、温暖な気候と、紀の里の桃に適した環境が整っており、枝木の剪定、摘花等　繊細な桃は出荷させるまでに大変手間をかけて育てています。',story:'JAわかやま紀の里地域本部は、県内最大の栽培面積を誇る紀の川市を有し、その栽培は桃山町で1782年から始まったという記録が残る由緒ある地域です。',cooking:'お好みの柔らかさになるまで、常温で置いてからお召し上がりください。1時間ほど冷やしてお召し上がりください。',media:'',notes:'※食べ頃を迎えた品種を出荷地にて選別の上お届けいたします。※お届けは7月上旬から8月中旬となります。※お申込みは7月17日（金）までとなります。'},
+      {id:99,name:'JA晴れの国岡山　玉島北園芸協会桃部会　岡山白桃　1.5kg',catchCopy:'美しき白肌と高貴な香りをまとった、岡山が誇る名産品',priceBase:7000,priceTax:7560,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['美しい白さ','直射日光に当てずに育ててとろけるような柔らかさ'],recommend:'短い期間しか味わえない夏の逸品は、大切な方への贈答品としておすすめです。',ingredient:'上品なまでの白い果皮が特長です。美しい白肌をまとった姿から「白桃」と呼ばれ、均整のとれた姿形、とろけるような果肉、華やかで高貴な香り、甘く瑞々しい食感を楽しめます。',method:'上品な白桃に仕上げるために1玉ずつ手作業で袋かけを行い、収穫するまでそのまま栽培されます。この白さが他県との違うこだわりです。真っ白に仕上げることで、上品な甘みと香り、とろけるような柔らかさを生み出しています。※食べ頃を迎えた品種を出荷地にて選別の上お届けします。',story:'他県の桃は袋がけをしない無袋栽培が多く、赤みを帯びた色をしていますが、岡山県の桃は直射日光を当てない有袋栽培で、果皮が薄くて白い上品な雰囲気を醸し出しているのが特長です。「玉島北園芸協会桃部会」は岡山県内の中でも若い就農者が多い部会です。',cooking:'常温にて保管し追熟を行って下さい。食べる1～2時間前から冷蔵庫で冷やしておくと、多少果肉も引き締まり、皮もむきやすくなります。',media:'',notes:''},
+      {id:100,name:'愛知県産　JA蒲郡市ハウスみかん　2.5kg',catchCopy:'夏場の高級果実「蒲郡温室みかん」',priceBase:8000,priceTax:8640,category:'野菜・果物',maker:'(株)ベジテック',createdAt:'',features:['ほどよい酸味と強い甘み','内皮が柔らかく、果肉の風味を損なわない'],recommend:'程よい酸味と甘味が好きな方はぜひ。冷凍でシャーベットもおすすめです。',ingredient:'品種を宮川早生に統一し、高い糖度と程よい酸味を兼ね備えたみかんの中のみかんです。選果機により選果し、品質基準に基づき、味のバラつきがなく、均一で、高品質なみかんを消費者にお届けしています。',method:'地温冷却栽培法（土を冷やして、木に冬が来たと思わせ花を早く咲かせる栽培法）を導入し、4月上旬から9月下旬まで美味しい温室みかんを栽培、出荷しています。',story:'',cooking:'手で皮をむいて食べることができます。皮を剥いて冷凍することで、そのまま食べられるシャーベットとして味わえます。',media:'',notes:'※お届けは6月下旬から8月中旬となります。※お申込みは7月26日（日）までとなります。'},
+      {id:101,name:'生で食べられるスイートコーン　甘穫娘（かんとり～むすめ）',catchCopy:'子どもから大人までやみつきのフルーツのような甘さのスイートコーン。',priceBase:5200,priceTax:5616,category:'野菜・果物',maker:'大平やさい(株)',createdAt:'',features:['黄色と白のコントラストが美しい。','粒皮が柔らかく、甘味抜群のスイートコーンです。','生で食べれるスイートコーンです。','加熱調理にもお勧めです。'],recommend:'小さなお子様から幅広い年代の方にオススメ。子どものおやつとして大人気です。',ingredient:'6月下旬から7月上旬にかけて収穫を迎えますが、近年は非常に気温が高くなる年もあれば、雨が降り続く、あるいはほとんど降らないといった、極端な天候の中での栽培を強いられています。それでも、そんな状況下だからこそ、少しでも美味しいものをお届けしたいという想いで、日々工夫を重ねています。',method:'新鮮な状態で美味しいものをお届けするためのプロセス。①早朝より収穫したものは、速やかに圃場より持ち帰ります。②収穫後、速やかに真空予冷装置を使用して品温を4℃まで下げます。③品温が下がった後は予冷庫で保管します。④虫害や規格外のものを見つけるため、一本ずつ手と目視で確認し、選別します。⑤配達までの間、コールドチェーンを確保します。',story:'私たちがこの品種を栽培し続けている理由は、「美味しさ」です。自分自身が食べて本当に美味しいと感じ、この味を多くの方に届けたいと思ったことが始まりでした。市場にはあまり出回らず、栽培が難しい品種ですが、美味しさを最優先に選び続けています。',cooking:'生がお勧めです。一本ペロリと食べれる果物のような甘さです。蒸しや茹では定評あり。また素揚げや天ぷらも絶品。お子様には、とうもろこしご飯が大好評（おにぎりやおやつに）今からの時期は皮つきでバーベキュー！',media:'NHK高松放送局　ゆう6香川で中継放送されました。AMラジオ西日本放送局の取材を受けました。四国新聞社、日経新聞、KSB山陽放送局、岡山放送局、西日本放送局で取り扱い',notes:'※出荷時期により名前が変わる商品です。※お届け6月下旬から7月中旬となります。※お申込みは6月28日（日）までとなります。'},
+      {id:102,name:'生で食べられるスイートコーン　甘々娘（カンカンムスメ）',catchCopy:'子どもから大人までやみつきのフルーツのような甘さのスイートコーン。',priceBase:5200,priceTax:5616,category:'野菜・果物',maker:'大平やさい(株)',createdAt:'',features:['黄色と白のコントラストが美しい。','粒皮が柔らかく、甘味抜群のスイートコーンです。','生で食べれるスイートコーンです。','加熱調理にもお勧めです。'],recommend:'小さなお子様から幅広い年代の方にオススメ。子どものおやつとして大人気です。',ingredient:'この品種には、他の品種では味わえない美味しさがあります。自分が心から「美味しい」と思えたからこそ、「この味をぜひ知ってほしい」その思いで栽培を続けています。育てるのは非常に難しく、市場にもほとんど出回りません。',method:'新鮮な状態で美味しいものをお届けするためのプロセス。①早朝より収穫したものは、速やかに圃場より持ち帰ります。②収穫後、速やかに真空予冷装置を使用して品温を4℃まで下げます。③品温が下がった後は予冷庫で保管します。④虫害や規格外のものを見つけるため、一本ずつ手と目視で確認し、選別します。⑤配達までの間、コールドチェーンを確保します。',story:'私たちがこの品種を栽培し続けている理由は、「美味しさ」です。自分自身が食べて本当に美味しいと感じ、この味を多くの方に届けたいと思ったことが始まりでした。市場にはあまり出回らず、栽培が難しい品種ですが、美味しさを最優先に選び続けています。収穫期の6月初旬から6月下旬は、近年、異常高温や極端な降雨など厳しい環境が続きます。',cooking:'生がお勧めです。一本ペロリと食べれる果物のような甘さです。蒸しや茹では定評あり。また素揚げや天ぷらも絶品。お子様には、とうもろこしご飯が大好評（おにぎりやおやつに）今からの時期は皮つきでバーベキュー！',media:'NHK高松放送局　ゆう6香川で中継放送されました。AMラジオ西日本放送局の取材を受けました。四国新聞社、日経新聞、KSB山陽放送局、岡山放送局、西日本放送局で取り扱い',notes:'※出荷時期により名前が変わる商品です。※お届け6月上旬から7月上旬となります。※お申込みは6月16日（火）までとなります。'},
+      {id:103,name:'シュガーバターの木　オリジナル3種詰合せ　18袋入',catchCopy:'2017年の夏ギフト登場から、常に大人気の「シュガーバターの木 詰合せ」。今季でもセブン‐イレブンオリジナルの最新味が入った詰合せで登場。',priceBase:3600,priceTax:3888,category:'その他',maker:'株式会社グレープストーン',createdAt:'',features:['セブン－イレブンだけでしか手に入れることのできないオリジナル商品。','7&Iグループでもセブン－イレブンだけでしかお買い求めいただけない限定品。','セブン－イレブンギフトの為にデザインされた「オリジナル包装」。'],recommend:'2017年夏ギフトでの初登場からシーズンごとにご好評の「セブン－イレブン限定シュガーバターの木 詰合せ」。夏ギフトでもセブン－イレブン限定味入りの詰合せをご用意いたしました。旬の味覚を楽しみたい方やセブン－イレブンファンの方に。',ingredient:'・香ばしシリアル＆ミルキーショコラ：濃厚な風味をひきだした生乳100%の「国産発酵バター」。しぼりたて牛乳のようなすっきりとしたミルク感があふれるホワイトチョコ。',method:'・香ばしシリアル＆ミルキーショコラ：生地をひっくりかえしバター焼き面をサンドの両側にすることで、上からも下からもバター風味！しぼりたて牛乳のようなすっきりとしたミルク感があふれます。',story:'・香ばしシリアル＆ミルキーショコラ：リクエストにお応えし今年も夏ギフトに登場！オールマイティーな層に愛される、変わらぬ人気の王道アイテムです。',cooking:'',media:'',notes:''},
+      {id:104,name:'シュガーバターの木　オリジナル3種詰合せ　30袋入',catchCopy:'2017年の夏ギフト登場から、常に大人気の「シュガーバターの木 詰合せ」。セブン‐イレブンオリジナルの最新味が入った詰合せで登場。',priceBase:4400,priceTax:4752,category:'その他',maker:'株式会社グレープストーン',createdAt:'',features:['セブン－イレブンだけでしか手に入れることのできないオリジナル商品。','7&Iグループでもセブン－イレブンだけでしかお買い求めいただけない限定品。','セブン－イレブンギフトの為にデザインされた「オリジナル包装」。'],recommend:'2017年夏ギフトでの初登場からシーズンごとにご好評の「セブン－イレブン限定シュガーバターの木 詰合せ」。冬に続き、夏ギフトでもセブン－イレブン限定味入りの詰合せをご用意いたしました。旬の味覚を楽しみたい方や大人数でのギフトに。',ingredient:'・香ばしシリアル＆ミルキーショコラ：濃厚な風味をひきだした生乳100%の「国産発酵バター」。しぼりたて牛乳のようなすっきりとしたミルク感があふれるホワイトチョコ。',method:'・香ばしシリアル＆ミルキーショコラ：生地をひっくりかえしバター焼き面をサンドの両側にすることで、上からも下からもバター風味！しぼりたて牛乳のようなすっきりとしたミルク感があふれます。',story:'・香ばしシリアル＆ミルキーショコラ：リクエストにこたえて今夏もギフトに！ご好評にお応えし今年も夏ギフトに登場！オールマイティーな層に愛される、変わらぬ人気の王道アイテムです。',cooking:'',media:'',notes:''},
+      {id:105,name:'バターなだれとろけ製法　バターステイツクッキー',catchCopy:'セブンカフェ焼き菓子で大人気の「バターステイツクッキー」が今年の夏ギフトにも登場。',priceBase:3350,priceTax:3618,category:'その他',maker:'株式会社グレープストーン',createdAt:'',features:['セブンギフト初登場の味が入ったオリジナルセットです。定番「なだれとろけ製法 バターステイツクッキー」入り。','7&Iグループでもセブン－イレブン様だけでしかお買い求め頂けない限定品。','セブン－イレブンギフトの為にデザインされた「オリジナル包装」。'],recommend:'「銀のぶどう」がプロデュースするバタースイーツ専門店「バターステイツ」の人気商品であるバタークッキーを、食べきりやすい個包装にしたオリジナル商品。セブン－イレブン様でしか入手することのできない限定詰合せが登場。',ingredient:'・なだれとろけ製法 バターステイツクッキー：なんと全体の3分の1以上がバター！バター含有率34%を誇る究極のバターリッチクッキーです。',method:'・なだれとろけ製法 バターステイツクッキー：高配合バター生地は窯の熱で大量のバターがとろけだし、生地全体がなだれをうって広がりはじめます。',story:'・なだれとろけ製法 バターステイツクッキー：窯の熱でバターが溢れとろける独自の"バターなだれとろけ製法"でどこまでも香ばしく焼き上げたバターステイツブランドの代表作です。',cooking:'',media:'',notes:''},
+      {id:106,name:'カゴメ　山形県産プレミアム100%フルーツジュースギフト',catchCopy:'山形県の果実の中から「品種、栽培、産地」にこだわった100%ストレートジュースの詰め合わせです。',priceBase:3400,priceTax:3672,category:'その他',maker:'カゴメ',createdAt:'',features:['山形県で栽培された果実のみを使用した100%フルーツギフト','素材の美味しさをそのままにストレート製法で搾ったジュースです。','セブンアイグループ限定オリジナルギフト。','数量限定商品。','環境配慮型の紙製容器「カートカン」を使用。','砂糖・香料不使用。'],recommend:'フルーツジュースギフトはお年寄りからお子様まで幅広い年齢の方が美味しく召し上がれます。ご家族の方へのギフトにおススメです。',ingredient:'フルーツ王国である山形産の特定産地と栽培方法まで限定した原料を使用しています。',method:'旬の美味しさをそのままお届けする、非濃縮ストレート果汁です。それぞれの果実特有の味・香りを損なわず、果実本来の味わいを再現しています。砂糖・香料は不使用です。',story:'差別化されたギフトを開発すべく、長時間をかけて原料からデザインまでセブンイレブン様とカゴメが共同で開発してきたギフトです。実際に産地訪問することで、原料のこだわり、農家の人々のご苦労なども取材し、商品にストーリー性を持たせております。長く愛されるギフトを目指しております。',cooking:'飲料ギフトになりますので、冷やしてお召し上がり下さい。',media:'',notes:'廃棄がしやすく、軽量で持ち運びが便利なカートカン容器を使用。製造工程での殺菌処理時間が少ないのも特長で、素材の風味を損ねることなくジュースに出来ます。'},
+      {id:107,name:'京都　八代目儀兵衛 祇園料亭米「神楽」2合6個セット',catchCopy:'お米好きを唸らせる八代目儀兵衛の贅沢ブレンド米',priceBase:4000,priceTax:4320,category:'その他',maker:'(株)八代目儀兵衛',createdAt:'',features:['力強い甘さ、しっかりとした食感を楽しむお米。','瑞々しくやや締まった外観。','噛むたびに上品な甘さがあふれ出す。','余韻が短く軽やかで、料理の味わいを活かす名脇役。','和食と相性が良好。','飽きのこない味わいが心地良いお米。'],recommend:'和食との相性が良く、冷めてももっちりしているためお弁当にも最適。',ingredient:'全国のお米を食べ比べ、その時に一番のもの、最も相性のいいもの同士を独自に配合。素材の味を活かしつつ食味を向上させる儀兵衛のブレンド技術。1%単位の配合比率を追求し、単一米では実現できない、ふくよかで重厚感のあるお米を作り出します。',method:'独自の精米方法「美肌精米(R)」を活用し、精米時の摩擦熱を低減させる事でお米の味わいを100%再現。食感、のど越しがよく、甘さを感じるお米に仕上げます。',story:'手軽に食べることができるおにぎりを筆頭にどんな料理にも合わせやすく、食べる人の日常に寄り添うお米として誕生しました。ひと口目からおいしいと感じるおにぎりであること。ひと口目から口に入れた瞬間の歯ざわりで感じるおいしさを追求しました。',cooking:'①キッチンスケールを使い、お米の量を正確にはかります。②お米の入ったボウルに水を入れ、さっとかき混ぜてすぐに水を切りましょう。③お米を優しく握っては離すを40回繰り返します。④水を注いで軽くかき混ぜ捨てます。このすすぎを3回。そのあと、ザルで水をしっかり切りましょう。⑤タッパーにお米と水をいれてふたをし、冷蔵庫で60分浸水させます。⑥炊飯後、すぐにふたをあけます。しゃもじでお米の粒をつぶさないよう混ぜてください。',media:'',notes:''},
+      {id:108,name:'サン海苔　一等級使用佐賀のり詰合せ',catchCopy:'有明海産佐賀のりの中でも特に色・艶・香りが良い一等級海苔のみを使用！',priceBase:3850,priceTax:4158,category:'その他',maker:'下田商事株式会社',createdAt:'',features:['柔らかく旨みある佐賀県有明海産を使用','色・艶・香りともに良好な「一等級」のみを使用','一回食べきりの個食タイプにする事でいつでもパリッとした食感が楽しめます。','焼のり・味のりの2種類の味が楽しめる詰合せ'],recommend:'原料にこだわったワンランク上の海苔を食べてみたい方など',ingredient:'14年連続にて生産量・生産金額とも日本一を記録する佐賀有明海産の海苔を使用し、またその中でも厳しい等級格付規格の中から一等級と格付されたものだけを使用しております。佐賀のりの特徴は、歯切れがよく旨みがありスッとした口どけの良さにあります。',method:'収穫した一等級の海苔を、焼き上げる直前まで低温倉庫へ保管して鮮度を落とさないよう工夫しています。個食タイプなので、食べきりサイズでいつでもパリッとした食感・風味が味わえます。',story:'百貨店から高品質の商品を求めているお客様の獲得を目指し商品化。「産地指定」・「等級指定」・「個食」をキーワードに開発しました。',cooking:'温かいご飯のおともに、おつまみに。個食タイプなので、お弁当など持ち運びにも便利にお使いいただけます。',media:'',notes:''},
+      {id:109,name:'佐賀有明海産　焼のり寿司はね35枚',catchCopy:'佐賀有明海産の上質な海苔のみを使用し、たっぷり使える大容量タイプの寿司はね焼のり',priceBase:4200,priceTax:4536,category:'その他',maker:'下田商事株式会社',createdAt:'',features:['柔らかく旨みある佐賀県有明海産を使用','佐賀県有明海産の中でも若摘みの上級等級のみ使用','ギフト用やお寿司屋で使用する高品質の海苔を使用','海苔の小さな破れ・小穴・カケがある寿司はねタイプ','たっぷり使える35枚入りの大容量タイプ','様々な料理に使える板のり','保存がしやすいチャック付袋'],recommend:'原料にこだわったワンランク上の海苔を、おにぎりやお弁当・ご飯のお供など、日ごろから海苔をお召し上がる機会の多い方など',ingredient:'全国でもトップクラスの生産量・販売金額を記録する、佐賀県有明海産を使用しております。また今回の原料は、特に歯切れ・くちどけ・旨みが良い若摘みの上級等級原料のみを使用しております。',method:'収穫した佐賀県有明海産の海苔を、焼き上げる直前まで低温管理の倉庫にて保管し、鮮度を落とさないよう工夫しています。',story:'百貨店ギフトやお寿司屋に使用される高品質の海苔をご自宅でたっぷり使っていただけるように開発致しました。また少々形が不揃いではありますが、汎用性が高い板のりを使用し、味は変わらず大容量パックにてお届けしております。',cooking:'温かいご飯のお供・手巻き寿司・おにぎり・お弁当など、さまざまな料理に合ったサイズにカットしてしてお召し上がりいただけます。',media:'',notes:''},
+      {id:110,name:'王様のローストビーフ',catchCopy:'希少部位「ともさんかく」を使ったローストビーフ。やわらかでうま味たっぷり。',priceBase:5500,priceTax:5940,category:'お肉',maker:'米久株式会社',createdAt:'2026/2/3',features:['もも肉の中でもサシが入った希少部位を贅沢に使用。柔らかく、厚切りでも食べやすい。','表面を焼いた後、真空調理でじっくりと加熱し、うま味を逃さずしっとりとした食感を実現。'],recommend:'特別な方への贈り物、お肉好きへ自信を持っておすすめできます。',ingredient:'牛のモモ肉の中で最もサシ（脂）が入りやすく、柔らかい希少部位です。程よい赤身とコクのあるジューシーな脂が特徴でローストビーフに最適。穀物肥育（グレインフェッド）された高品質、濃厚な旨味を楽しめます。',method:'肉の表面をこんがりと直火でローストし肉のうま味を閉じ込めてから米久が得意とする真空調理法でじっくりと低温で加熱、ローストビーフの最大の特長である肉のうま味とやわらかさを最大限に引き出しました。',story:'王様のローストビーフの最大の特長は、原料に希少部位「ともさんかく」を使用していることです。この部位を選んだ理由は、肉質の良さとやわらかさに加え、もう一つ重要なポイントがあります。ローストビーフは製法上、味付けが肉塊の表面にしかできません。そのため、味の付いた表面と素材本来の風味を楽しめる中心部とのバランスがおいしさの決め手となります。',cooking:'冷凍庫で半解凍後（目安として24時間かかります。）、袋から取り出し、お好みの厚さにスライスしてお召し上がりください。スライスする際、お手元に十分ご注意ください。',media:'デパ地下を特集した番組に何度も放送され「大丸東京店全館従業員が選んだ人気【お惣菜・弁当部門】」の1位を獲得し紹介。その後の売場でもPOPにて訴求している',notes:''}
     ]);
 
     const categories = [
-      { key: '海鮮', label: '海鮮', icon: '🦀' },
+      { key: 'アイス', label: 'アイス', icon: '🍦' },
       { key: 'お肉', label: 'お肉', icon: '🥩' },
+      { key: '海鮮', label: '海鮮', icon: '🦀' },
       { key: 'スイーツ', label: 'スイーツ', icon: '🍰' },
-      { key: 'ドリンク', label: 'ドリンク', icon: '🍊' }
+      { key: 'ドリンク', label: 'ドリンク', icon: '🍹' },
+      { key: '麺類', label: '麺類', icon: '🍜' },
+      { key: '野菜・果物', label: '野菜・果物', icon: '🍑' },
+      { key: 'その他', label: 'その他', icon: '🎁' }
     ];
 
     const priceRanges = [
@@ -698,32 +856,22 @@ createApp({
     ];
 
     const getCategoryStyle = (cat) => {
-      const styles = {
-        '海鮮': 'bg-blue-100 text-blue-700',
-        'お肉': 'bg-red-100 text-red-700',
-        'スイーツ': 'bg-pink-100 text-pink-700',
-        'ドリンク': 'bg-orange-100 text-orange-700'
-      };
+      const styles = { 'アイス':'bg-cyan-100 text-cyan-700','お肉':'bg-red-100 text-red-700','海鮮':'bg-blue-100 text-blue-700','スイーツ':'bg-pink-100 text-pink-700','ドリンク':'bg-orange-100 text-orange-700','麺類':'bg-yellow-100 text-yellow-700','野菜・果物':'bg-green-100 text-green-700','その他':'bg-purple-100 text-purple-700' };
       return styles[cat] || 'bg-gray-100 text-gray-700';
     };
 
     const getCategoryBg = (cat) => {
-      const bgs = {
-        '海鮮': 'bg-gradient-to-br from-blue-100 to-cyan-100',
-        'お肉': 'bg-gradient-to-br from-red-100 to-orange-100',
-        'スイーツ': 'bg-gradient-to-br from-pink-100 to-purple-100',
-        'ドリンク': 'bg-gradient-to-br from-orange-100 to-yellow-100'
-      };
+      const bgs = { 'アイス':'bg-gradient-to-br from-cyan-100 to-sky-100','お肉':'bg-gradient-to-br from-red-100 to-orange-100','海鮮':'bg-gradient-to-br from-blue-100 to-cyan-100','スイーツ':'bg-gradient-to-br from-pink-100 to-purple-100','ドリンク':'bg-gradient-to-br from-orange-100 to-yellow-100','麺類':'bg-gradient-to-br from-yellow-100 to-amber-100','野菜・果物':'bg-gradient-to-br from-green-100 to-emerald-100','その他':'bg-gradient-to-br from-purple-100 to-indigo-100' };
       return bgs[cat] || 'bg-gradient-to-br from-gray-100 to-gray-200';
     };
 
     const getCategoryIcon = (cat) => {
-      const icons = { '海鮮': '🦀', 'お肉': '🥩', 'スイーツ': '🍰', 'ドリンク': '🍊' };
+      const icons = { 'アイス':'🍦','お肉':'🥩','海鮮':'🦀','スイーツ':'🍰','ドリンク':'🍹','麺類':'🍜','野菜・果物':'🍑','その他':'🎁' };
       return icons[cat] || '📦';
     };
 
     const getCategoryEmoji = (cat) => {
-      const emojis = { '海鮮': '🦞', 'お肉': '🥩', 'スイーツ': '🎂', 'ドリンク': '🍹' };
+      const emojis = { 'アイス':'🍧','お肉':'🥩','海鮮':'🦞','スイーツ':'🎂','ドリンク':'🥤','麺類':'🍝','野菜・果物':'🍈','その他':'🎁' };
       return emojis[cat] || '🎁';
     };
 
@@ -736,19 +884,7 @@ createApp({
     const matchesSearch = (product) => {
       if (!searchQuery.value) return true;
       const q = searchQuery.value.toLowerCase();
-      const searchFields = [
-        product.name,
-        product.catchCopy,
-        product.maker,
-        product.category,
-        product.recommend,
-        product.ingredient,
-        product.method,
-        product.story,
-        product.cooking,
-        product.media,
-        ...(product.features || [])
-      ].filter(Boolean).join(' ').toLowerCase();
+      const searchFields = [product.name,product.catchCopy,product.maker,product.category,product.recommend,product.ingredient,product.method,product.story,product.cooking,product.media,product.notes,...(product.features||[])].filter(Boolean).join(' ').toLowerCase();
       return searchFields.includes(q);
     };
 
@@ -771,9 +907,7 @@ createApp({
     };
 
     const filteredProducts = computed(() => {
-      let result = products.value.filter(p =>
-        matchesSearch(p) && matchesCategory(p) && matchesPriceRange(p) && matchesFavorite(p)
-      );
+      let result = products.value.filter(p => matchesSearch(p) && matchesCategory(p) && matchesPriceRange(p) && matchesFavorite(p));
       if (sortBy.value === 'price_asc') result = [...result].sort((a, b) => a.priceTax - b.priceTax);
       if (sortBy.value === 'price_desc') result = [...result].sort((a, b) => b.priceTax - a.priceTax);
       return result;
@@ -792,7 +926,6 @@ createApp({
     };
 
     const setSortBy = (val) => { sortBy.value = val; };
-
     const openModal = (product) => { selectedProduct.value = product; };
     const closeModal = () => { selectedProduct.value = null; };
 
@@ -800,11 +933,10 @@ createApp({
       const idx = favoriteIds.value.indexOf(id);
       if (idx >= 0) favoriteIds.value.splice(idx, 1);
       else favoriteIds.value.push(id);
-      localStorage.setItem('giftFavorites', JSON.stringify(favoriteIds.value));
+      localStorage.setItem('summerGiftFavorites', JSON.stringify(favoriteIds.value));
     };
 
     const toggleFavoriteView = () => { showFavoritesOnly.value = !showFavoritesOnly.value; };
-
     const clearSearch = () => { searchQuery.value = ''; };
 
     const resetAll = () => {
@@ -818,7 +950,7 @@ createApp({
     const onSearch = () => {};
 
     onMounted(() => {
-      const saved = localStorage.getItem('giftFavorites');
+      const saved = localStorage.getItem('summerGiftFavorites');
       if (saved) favoriteIds.value = JSON.parse(saved);
       setTimeout(() => { showHint.value = false; }, 5000);
     });
@@ -830,7 +962,11 @@ createApp({
       getCategoryStyle, getCategoryBg, getCategoryIcon, getCategoryEmoji,
       highlightText, toggleCategory, togglePriceRange, setSortBy,
       openModal, closeModal, toggleFavorite, toggleFavoriteView,
-      clearSearch, resetAll, onSearch
+      clearSearch, resetAll, onSearch,
+      // ガチャ
+      gachaOpen, gachaSpinning, gachaResult, gachaCount, gachaHistory, spinEmoji,
+      openGacha, closeGacha, spinGacha, viewGachaDetail,
+      getGachaRarity, getSerendipityMessage
     };
   }
 }).mount('#app');
